@@ -41,6 +41,7 @@ button {
 </style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <script type="text/javascript" src="internationalization_tables.js" ></script>   
+<script type="text/javascript" src="audioProcessing.js" ></script>   
 <script type="text/javascript" src="https://cdn.webrtc-experiment.com/RecordRTC.js" defer="true" ></script>   
 </head>
 <body>
@@ -48,7 +49,7 @@ button {
 	<div id="waveform" style="position: fixed; top: 5%; left: 20%; width: 60%; height: 60% " ></div>
 	<p><audio id='Audio' controls="false" hidden="true" ></audio></p>
 	
-	<canvas id="TonePlot" width="1000" height="1000" style="position: fixed; top: 5%; left: 15%; width: 60%; height: 55%; "></canvas> 
+	<canvas id="DrawingArea" width="1000" height="1000" style="position: fixed; top: 5%; left: 15%; width: 60%; height: 55%; "></canvas> 
 	
 	<button type="button" style="color: gray; bottom: 2%; left: 32%" id="RecordButton" disabled="true" ><span style="font-size: 100%; ">&#9679;<br /><span id="Record">Record</span></span></button>
 	<button type="button" style="color: gray; bottom: 2%; left: 51%" id="PlayButton" disabled="true" ><span style="font-size: 100%">&#9658;<br /><span id="Play">Play</span></span></button>
@@ -59,28 +60,16 @@ button {
 	var record = document.getElementById('RecordButton');
 	var play = document.getElementById('PlayButton');
 	var mediaElement = document.getElementById('Audio');
+	var recordedBlob;
 	var stopRecording, playSound;
 	
 	// Canvas drawing functions
-	var drawingArea = document.getElementById("TonePlot");
+	var drawingArea = document.getElementById("DrawingArea");
 	
-	var setDrawingParam = function () {
-		var drawingCtx = drawingArea.getContext("2d");
-		drawingCtx.lineWidth = 4;
-		drawingCtx.strokeStyle = "green";
-	};
-	var testDrawing = function (color, order) {
-		var drawingCtx = drawingArea.getContext("2d");
-		drawingCtx.beginPath();
-		drawingCtx.strokeStyle = color;
-		drawingCtx.moveTo(250 + order,250);
-		drawingCtx.lineTo(750 - order,750);
-		drawingCtx.stroke();
-	};
+	setDrawingParam("DrawingArea")
+	testDrawing("DrawingArea", "green", 0)
+	testDrawing("DrawingArea", "red", 500)
 	
-	setDrawingParam()
-	testDrawing("green", 0)
-	testDrawing("red", 500)
 	// Global settings
 	var recSecs = 4;
 	// Set language (make that selectable)
@@ -116,6 +105,8 @@ button {
 		stopRecording = function() {
 			recordRTC.stopRecording(function(audioURL) { 
 				mediaElement.src = audioURL;
+				recordedBlob = recordRTC.getBlob();
+				// Do things with Blob!!!
 			});
 		    play.disabled = false;
 		    record.disabled = false;

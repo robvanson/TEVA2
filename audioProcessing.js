@@ -45,7 +45,23 @@ var testDrawing = function (canvasId, color, order) {
 	drawingCtx.stroke();
 };
 
-function draw_waveform (canvasId, color, typedArray, tmin, tmax) {
+function draw_waveform (canvasId, color, recordedArray, tmin, tmax) {
+	
+	// Find part 
+	// Silence thresshold is -30 dB
+	var thressHoldDb = 30;
+	var silenceThresshold = Math.pow(10, -1 * thressHoldDb / 20);
+	var soundLength = recordedArray.length;
+	var firstSample = soundLength;
+	var lastSample = 0;
+	for (var i = soundLength - 1; i >= 0; --i) {
+		if (Math.abs(recordedArray[i]) >= silenceThresshold) firstSample = i;
+	};
+	for (var i = 0; i < soundLength; ++i) {
+		if (Math.abs(recordedArray[i]) >= silenceThresshold) lastSample = i;
+	};
+	typedArray = recordedArray.subarray(firstSample, lastSample + 1);
+
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
 	var horMargin = 0.05 * drawingCtx.canvas.width;
@@ -124,9 +140,12 @@ function processAudio (blob) {
 
 function decodedDone(decoded) {
 	var typedArray = new Float32Array(decoded.length);
-	typedArray=decoded.getChannelData(0);
+	typedArray = decoded.getChannelData(0);
 	recordedArray = typedArray;
+	var sampleRate = decoded.sampleRate;
+	var length = decoded.length;
+	var duration = decoded.duration;
 	
 	// Process and draw audio
-	draw_waveform ("DrawingArea", "black", recordedArray, 0, 1)
+	draw_waveform ("DrawingArea", "black", recordedArray, 0, duration)
 };

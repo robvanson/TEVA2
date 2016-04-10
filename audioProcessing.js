@@ -45,13 +45,19 @@ var testDrawing = function (canvasId, color, order) {
 	drawingCtx.stroke();
 };
 
-function draw_waveform (canvasId, color, recordedArray, tmin, tmax) {
-	
-	// Find part 
+function cut_silent_margins (recordedArray, sampleRate) {
+	// Find part with sound
+	var silentMargin = 0.1;
 	// Silence thresshold is -30 dB
-	var thressHoldDb = 30;
-	var silenceThresshold = Math.pow(10, -1 * thressHoldDb / 20);
 	var soundLength = recordedArray.length;
+	var thressHoldDb = 30;
+	var sumSquare = 0;
+	for (var i = 0; i < soundLength; ++i) {
+		sumSquare += recordedArray[i] * recordedArray[i];
+	};
+	var power = sumSquare / soundLength;
+	
+	var silenceThresshold = Math.pow(10, -1 * thressHoldDb / 20) * Math.sqrt (power);
 	var firstSample = soundLength;
 	var lastSample = 0;
 	for (var i = soundLength - 1; i >= 0; --i) {
@@ -60,8 +66,31 @@ function draw_waveform (canvasId, color, recordedArray, tmin, tmax) {
 	for (var i = 0; i < soundLength; ++i) {
 		if (Math.abs(recordedArray[i]) >= silenceThresshold) lastSample = i;
 	};
-	typedArray = recordedArray.subarray(firstSample, lastSample + 1);
+	firstSample -= silentMargin * sampleRate;
+	if (firstSample < 0) firstSample = 0;
+	lastSample += silentMargin * sampleRate;
+	if (lastSample >= soundLength) soundLength - 1;
+	soundArray = recordedArray.subarray(firstSample, lastSample + 1);
+	
+	return soundArray;
+};
 
+function display_recording_level (id, recordedArray) {
+	var sumSquare = 0;
+	for (var i = 0; i < recordedArray.length; ++i) {
+		sumSquare += recordedArray[i] * recordedArray[i];
+	};
+	var power = sumSquare / recordedArray.length;
+	var dBpower = Math.log10(power) * -10
+	dBpower = Math.min(dBpower, 55);
+	
+	var recordingLight = document.getElementById(id);
+	recordingLight.style.top = (5 + (10*dBpower / 600) * 6 ) + "%";
+	recordingLight.style.left = (5 + (10*dBpower / 600) * 2 ) + "%";
+	recordingLight.style.fontSize = (600 - 10*dBpower) + "%";
+};
+
+function draw_waveform (canvasId, color, typedArray, tmin, tmax) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
 	var horMargin = 0.05 * drawingCtx.canvas.width;
@@ -144,8 +173,11 @@ function decodedDone(decoded) {
 	recordedArray = typedArray;
 	var sampleRate = decoded.sampleRate;
 	var length = decoded.length;
-	var duration = decoded.duration;
 	
 	// Process and draw audio
-	draw_waveform ("DrawingArea", "black", recordedArray, 0, duration)
+	var subArray = cut_silent_margins (recordedArray, sampleRate);
+	var duration = subArray.length * sampleRate;
+	
+	display_recording_level ("RecordingLight", subArray);
+	draw_waveform ("DrawingArea", "black", subArray, sampleRate, duration)
 };

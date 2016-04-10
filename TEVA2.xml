@@ -45,7 +45,7 @@ button {
 <script type="text/javascript" src="https://cdn.webrtc-experiment.com/RecordRTC.js" defer="true" ></script>   
 </head>
 <body>
-	<div style="color: gray; position: fixed; top: 5%; left: 5%; font-size: 600%" id="RecordingLight">&#9679;</div>
+	<div style="color: gray; position: fixed; top: 5%; left: 5%; font-size: 600%; text-align: center; " id="RecordingLight">&#9679;</div>
 	<div id="waveform" style="position: fixed; top: 5%; left: 20%; width: 60%; height: 60% " ></div>
 	<p><audio id='Audio' controls="false" hidden="true" ></audio></p>
 	
@@ -124,6 +124,9 @@ button {
 		    record.disabled = true;
 		    record.style.color = "gray";
 		    play.style.color = "gray";
+			recordingLight.style.top = "5%";
+			recordingLight.style.left = "5%";
+			recordingLight.style.fontSize = "600%";
 		    recordingLight.style.color = "red";
 		    
 		    // Set Timeout for stop

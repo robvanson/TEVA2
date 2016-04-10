@@ -88,7 +88,7 @@ function display_recording_level (id, recordedArray) {
 	
 	var recordingLight = document.getElementById(id);
 	recordingLight.style.top = (5 + (10*dBpower / 600) * 6 ) + "%";
-	recordingLight.style.left = (5 + (10*dBpower / 600) * 2 ) + "%";
+	recordingLight.style.left = (2 + (10*dBpower / 600) * 2 ) + "%";
 	recordingLight.style.fontSize = (600 - 10*dBpower) + "%";
 };
 
@@ -97,23 +97,29 @@ function drawSignal (display) {
 	var color = "black";
 	var drawingCtx = setDrawingParam(canvasId);
 	resetDrawingParam (drawingCtx);
-	var sampleRate, duration;
-	if (display == "Sound") {
-		draw_waveform (canvasId, color, recordedArray, sampleRate, duration);
-	} else if (display == "Pitch") {
-	} else if (display == "Spectrogram") {
-	} else {
+	if (recordedArray) {
+		if (display == "Sound") {
+			draw_waveform (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);
+		} else if (display == "Pitch") {
+		} else if (display == "Spectrogram") {
+		} else if (display == "Ltas") {
+		} else if (display == "Intensity") {
+			draw_intensity (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);		
+		} else {
 	}
+};
 }
 
-function draw_waveform (canvasId, color, typedArray, tmin, tmax) {
+function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
-	var horMargin = 0.05 * drawingCtx.canvas.width;
+	var horMargin = 0.02 * drawingCtx.canvas.width;
 	var plotHeight = 0.9 * drawingCtx.canvas.height
-	var verMargin = 0.05 * drawingCtx.canvas.height
+	var verMargin = 0.02 * drawingCtx.canvas.height
 	var tickLength = 10;
 	
+	var tmin = 0;
+	var tmax = duration;
 	var verMax = 1;
 	var verMin = -1;
 	var deltaVer = 0.1 * plotHeight;
@@ -166,11 +172,101 @@ function draw_waveform (canvasId, color, typedArray, tmin, tmax) {
 		var currentTime = tmin + i * tScale;
 		var currentValue = typedArray[i];
 		drawingCtx.lineTo(horMargin + i * tScale , plotHeight / 2 - currentValue * vScale);
-		prevTime = currentTime;
-		prevValue = currentValue;
 	};
 	drawingCtx.stroke();
 };
+
+function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
+	var drawingCtx = setDrawingParam(canvasId);
+	var plotWidth = 0.95 * drawingCtx.canvas.width;
+	var horMargin = 0.02 * drawingCtx.canvas.width;
+	var plotHeight = 0.9 * drawingCtx.canvas.height
+	var verMargin = 0.02 * drawingCtx.canvas.height
+	var tickLength = 10;
+	
+	var tmin = 0;
+	var tmax = duration;
+	var maxPower = 100;
+	var verMax = maxPower;
+	var verMin = 0;
+	var deltaVer = 0.1 * plotHeight;
+	var horMin = tmin;
+	var horMan = tmax;
+	var deltaHor = plotWidth / 20;
+	
+	// Calculate Intensity
+	// This is stil just the power in dB.
+	var dT = 0.01
+	var numFrames = Math.ceil(duration / dT);
+	var intensityArray = new Float32Array(numFrames);
+	for (var t=0; t < duration; t += dT) {
+		var sumSquares = 0;
+		var n = 0;
+		var jstart = Math.floor(t * sampleRate);
+		var jend = Math.ceil((t + dT) * sampleRate);
+		if (jend > typedArray.length) jend = typedArray.length;
+		for (var j = jstart; j < jend; ++j) {
+			sumSquares += typedArray[j] * typedArray[j];
+			++n;
+		};
+		var i = Math.floor(t / dT);
+		var power = (n > 0) ? maxPower - Math.log10(sumSquares / n) * -10 : 0;
+		if (power < 0) power = 0;
+		intensityArray [i] = power;
+	};
+	
+	// Set parameters
+	resetDrawingParam(drawingCtx);
+	drawingCtx.beginPath();
+	drawingCtx.strokeStyle = color;
+	
+	var numSamples = intensityArray.length;
+	
+	// Draw axes
+	drawingCtx.beginPath();
+	drawingCtx.lineWidth = 0.5;
+	drawingCtx.moveTo(horMargin, 0);
+	drawingCtx.lineTo(horMargin, plotHeight);
+	drawingCtx.lineTo(horMargin + plotWidth, plotHeight);
+	drawingCtx.stroke();
+	// Draw ticks
+	// Vertical
+	drawingCtx.beginPath();
+	drawingCtx.lineWidth = 0.1;
+	for (var v = 0; v <= plotHeight; v += deltaVer) {
+		drawingCtx.moveTo(horMargin - tickLength, v);
+		drawingCtx.lineTo(horMargin, v);
+		drawingCtx.stroke();
+	};
+	// Horizontal
+	drawingCtx.beginPath();
+	drawingCtx.lineWidth = 0.1;
+	for (var h = 0; h <= plotWidth; h += deltaHor) {
+		drawingCtx.moveTo(horMargin + h, plotHeight);
+		drawingCtx.lineTo(horMargin + h, plotHeight + 2*tickLength);
+		drawingCtx.stroke();
+	};
+
+	// Reset drawing
+	drawingCtx.beginPath();
+	drawingCtx.lineWidth = 0.5;
+	
+	// Scale to plot area
+	var tScale = plotWidth / numSamples;
+	var vScale = plotHeight / verMax;
+	var resetLine = 0;
+	
+	drawingCtx.moveTo(horMargin, plotHeight - intensityArray[0] * vScale);
+	for(var i = 1; i < numSamples; i+=1) {
+		var currentTime = tmin + i * tScale;
+		var currentValue = intensityArray[i];
+		if (currentValue > 0) {
+			drawingCtx.lineTo(horMargin + i * tScale , plotHeight - currentValue * vScale);
+		};
+	};
+	drawingCtx.stroke();
+};
+
 // Decode the audio blob
 var audioProcessing_decodedArray;
 function processAudio (blob) {
@@ -187,13 +283,14 @@ function decodedDone(decoded) {
 	var typedArray = new Float32Array(decoded.length);
 	typedArray = decoded.getChannelData(0);
 	var currentArray = typedArray;
-	var sampleRate = decoded.sampleRate;
+	recordedSampleRate = decoded.sampleRate;
+	recordedDuration = decoded.duration;
 	var length = decoded.length;
 	
 	// Process and draw audio
-	recordedArray = cut_silent_margins (currentArray, sampleRate);
-	var duration = recordedArray.length * sampleRate;
+	recordedArray = cut_silent_margins (currentArray, recordedSampleRate);
+	recordedDuration = recordedArray.length / recordedSampleRate;
 	
 	display_recording_level ("RecordingLight", recordedArray);
-	draw_waveform ("DrawingArea", "black", recordedArray, sampleRate, duration)
+	drawSignal (teva_settings.display)
 };

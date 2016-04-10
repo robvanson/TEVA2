@@ -54,6 +54,10 @@ button {
 	<button type="button" style="color: gray; bottom: 2%; left: 32%" id="RecordButton" disabled="true" ><span style="font-size: 100%; ">&#9679;<br /><span id="Record">Record</span></span></button>
 	<button type="button" style="color: gray; bottom: 2%; left: 51%" id="PlayButton" disabled="true" ><span style="font-size: 100%">&#9658;<br /><span id="Play">Play</span></span></button>
 
+	<button type="button" style="color: red; bottom: 72%; right: 2%; height: 10%" id="Draw_SoundButton" ><span style="font-size: 100%"><span id="Draw_Sound" >Sound</span></span></button>
+	<button type="button" style="color: black; bottom: 61%; right: 2%; height: 10%" id="Draw_PitchButton" ><span style="font-size: 100%"><span id="Draw_Pitch" >Pitch</span></span></button>
+	<button type="button" style="color: black; bottom: 50%; right: 2%; height: 10%" id="Draw_SpectrogramButton" ><span style="font-size: 100%"><span id="Draw_Spectrogram" >Spectrogram</span></span></button>
+
     <script type="text/javascript">
 	// Set DOM parameters
 	var recordingLight = document.getElementById('RecordingLight');
@@ -64,6 +68,64 @@ button {
 	var recordedArray;
 	var stopRecording, playSound;
 	
+	// varaibles
+	var currentDisplay = "Draw_SoundButton";
+	
+	// Buttons
+	var draw_SoundButton = document.getElementById('Draw_SoundButton');
+	var draw_PitchButton = document.getElementById('Draw_PitchButton');
+	var draw_SpectrogramButton = document.getElementById('Draw_SpectrogramButton');
+	
+	function unsetDrawButtons () {
+		var buttonList = ['Draw_SoundButton', 'Draw_PitchButton', 'Draw_SpectrogramButton'];
+		for(var b in buttonList) {
+			var button = document.getElementById(buttonList[b]);
+			if (button) button.style.color = "black";
+		};
+	};
+	
+	function setDrawButtons ( button ) {
+		unsetDrawButtons ();
+		button.style.color = "red";
+		currentDisplay = button.id .replace(/^[^_]+_([a-zA-Z0-9]+)Button$/, "$1");
+		
+		drawSignal (currentDisplay);
+	};
+	
+	draw_SoundButton.onclick = function () { setDrawButtons (this)};
+	draw_PitchButton.onclick = function () { setDrawButtons (this)};
+	draw_SpectrogramButton.onclick = function () { setDrawButtons (this)};
+	
+	// Global settings
+	var teva_settings = {
+		recSecs: 4,
+		language: "",
+	};
+	
+	// Store settings
+	function store_SGC3_settings () {
+		for (x in teva_settings) {
+			localStorage[x] = teva_settings[x];
+		};
+	};
+	
+	function load_SGC3_settings () {
+		for (x in teva_settings) {
+			if (localStorage[x]) teva_settings[x] = localStorage[x];
+		};
+		
+		set_mainpageLanguage (teva_settings.language);
+	};
+	
+	// Initialize to stored settings
+	load_SGC3_settings ();
+	
+	// Set language (make that selectable)
+	if (!teva_settings.language) {
+		teva_settings.language = (userLanguage) ? userLanguage : "EN";
+	};
+	set_mainpageLanguage (teva_settings.language);
+	
 	// Canvas drawing functions
 	var drawingArea = document.getElementById("DrawingArea");
 	
@@ -71,11 +133,9 @@ button {
 	testDrawing("DrawingArea", "green", 0)
 	testDrawing("DrawingArea", "red", 500)
 	
-	// Global settings
-	var recSecs = 4;
 	// Set language (make that selectable)
 	var language = (userLanguage) ? userLanguage : "EN";
-	set_language (language);
+	set_mainpageLanguage (language);
 
 	// Other parameters
 	var mediaStream;
@@ -130,7 +190,7 @@ button {
 		    recordingLight.style.color = "red";
 		    
 		    // Set Timeout for stop
-		    setTimeout(stopRecording, recSecs * 1000)
+		    setTimeout(stopRecording, teva_settings.recSecs * 1000)
 		}
 	
 	};

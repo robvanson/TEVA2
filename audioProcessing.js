@@ -92,6 +92,20 @@ function display_recording_level (id, recordedArray) {
 	recordingLight.style.fontSize = (600 - 10*dBpower) + "%";
 };
 
+function drawSignal (display) {
+	var canvasId = "DrawingArea";
+	var color = "black";
+	var drawingCtx = setDrawingParam(canvasId);
+	resetDrawingParam (drawingCtx);
+	var sampleRate, duration;
+	if (display == "Sound") {
+		draw_waveform (canvasId, color, recordedArray, sampleRate, duration);
+	} else if (display == "Pitch") {
+	} else if (display == "Spectrogram") {
+	} else {
+	}
+}
+
 function draw_waveform (canvasId, color, typedArray, tmin, tmax) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
@@ -172,14 +186,14 @@ function processAudio (blob) {
 function decodedDone(decoded) {
 	var typedArray = new Float32Array(decoded.length);
 	typedArray = decoded.getChannelData(0);
-	recordedArray = typedArray;
+	var currentArray = typedArray;
 	var sampleRate = decoded.sampleRate;
 	var length = decoded.length;
 	
 	// Process and draw audio
-	var subArray = cut_silent_margins (recordedArray, sampleRate);
-	var duration = subArray.length * sampleRate;
+	recordedArray = cut_silent_margins (currentArray, sampleRate);
+	var duration = recordedArray.length * sampleRate;
 	
-	display_recording_level ("RecordingLight", subArray);
-	draw_waveform ("DrawingArea", "black", subArray, sampleRate, duration)
+	display_recording_level ("RecordingLight", recordedArray);
+	draw_waveform ("DrawingArea", "black", recordedArray, sampleRate, duration)
 };

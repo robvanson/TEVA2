@@ -44,8 +44,7 @@ button {
 <script type="text/javascript" src="audioProcessing.js" ></script>   
 <script type="text/javascript" src="https://cdn.webrtc-experiment.com/RecordRTC.js" defer="true" ></script>   
 </head>
-<body onload='draw_recording_light ("grey", 1); '>
-	<canvas id="RecordingCanvas" width="10000" height="10000" style="position: fixed; top: 25%; left: 5%; width: 40; height: 40px; "></canvas> 
+<body >
 	<div style="color: gray; position: fixed; top: 5%; left: 5%; font-size: 600%; text-align: center; " id="RecordingLight">&#9679;</div>
 	<div id="waveform" style="position: fixed; top: 5%; left: 20%; width: 60%; height: 60% " ></div>
 	<p><audio id='Audio' controls="false" hidden="true" ></audio></p>
@@ -64,23 +63,6 @@ button {
 	var recordedBlob;
 	var recordedArray;
 	var stopRecording, playSound;
-	
-	// Draw the recording light
-	function draw_recording_light (color, size) {
-		var recordingCanvas = document.getElementById('RecordingCanvas');
-		var drawingCtx = recordingCanvas.getContext("2d");
-		var width = drawingCtx.canvas.width;
-		var height = drawingCtx.canvas.height;
-		drawingCtx.beginPath();
-		drawingCtx.clearRect(0, 0, width, height);
-		drawingCtx.beginPath();
-
-		drawingCtx.arc(width/2, height/2, size*width/2, 0, 2*Math.PI, true);
-		//drawingCtx.fill();	
-		drawingCtx.fillStyle = color;
-		drawingCtx.fill();
-		drawingCtx.closePath();
-	};
 	
 	// Canvas drawing functions
 	var drawingArea = document.getElementById("DrawingArea");
@@ -132,7 +114,6 @@ button {
 		    record.disabled = false;
 		    record.style.color = "red";
 		    play.style.color = "red";
-		    draw_recording_light ("gray", 1);
 		    recordingLight.style.color = "gray";
 		}
 		
@@ -147,7 +128,6 @@ button {
 			recordingLight.style.left = "5%";
 			recordingLight.style.fontSize = "600%";
 		    recordingLight.style.color = "red";
-		    draw_recording_light ("red", 1);
 		    
 		    // Set Timeout for stop
 		    setTimeout(stopRecording, recSecs * 1000)

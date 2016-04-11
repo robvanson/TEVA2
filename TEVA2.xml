@@ -173,6 +173,7 @@ button {
 		// Stop
 		stopRecording = function() {
 			recordRTC.stopRecording(function(audioURL) { 
+				recordingLight.style.color = "gray";
 				mediaElement.src = audioURL;
 				recordedBlob = recordRTC.getBlob();
 				// Do things with Blob!!!
@@ -182,7 +183,7 @@ button {
 		    record.disabled = false;
 		    record.style.color = "red";
 		    play.style.color = "red";
-		    recordingLight.style.color = "gray";
+			recordingLight.style.color = "gray";
 		}
 		
 		// onClick Start

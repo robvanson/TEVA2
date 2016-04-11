@@ -304,6 +304,7 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 
 	// Calculate the power spectrum
 	var powerSpectrum = new Float32Array(FFT_N);
+	// Scale per frequency
 	var powerScaling = Math.log10(FFT_N) * 20
 	for(var i = 0; i < FFT_N; ++ i) {
 		var powerValue = (output[2*i]*output[2*i] + output[2*i+1]*output[2*i+1]);

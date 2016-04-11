@@ -42,7 +42,9 @@ button {
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <script type="text/javascript" src="internationalization_tables.js" ></script>   
 <script type="text/javascript" src="audioProcessing.js" ></script>   
-<script type="text/javascript" src="https://cdn.webrtc-experiment.com/RecordRTC.js" defer="true" ></script>   
+<script type="text/javascript" src="fft.js/lib/complex.js" ></script>   
+<script type="text/javascript" src="fft.js/lib/real.js" ></script>   
+<script type="text/javascript" src="https://cdn.webrtc-experiment.com/RecordRTC.js" defer="true" ></script>
 </head>
 <body  onunload="store_TEVA_settings (); " >
 	<div style="color: gray; position: fixed; top: 5%; left: 2%; font-size: 600%; text-align: center; " id="RecordingLight">&#9679;</div>

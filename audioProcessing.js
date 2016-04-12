@@ -95,7 +95,7 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 	var verMin = -1;
 	var deltaVer = 0.1 * plotHeight;
 	var horMin = tmin;
-	var horMan = tmax;
+	var horMax = tmax;
 	var deltaHor = plotWidth / 20;
 	
 	// Set parameters
@@ -162,7 +162,7 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	var verMin = 0;
 	var deltaVer = 0.1 * plotHeight;
 	var horMin = tmin;
-	var horMan = tmax;
+	var horMax = tmax;
 	var deltaHor = plotWidth / 20;
 	
 	// Calculate Intensity
@@ -247,14 +247,20 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var tickLength = 10;
 	
 	var fMin = 0;
-	var fMax = teva_settings.frequency * 1000; // sampleRate / 2;
-	var maxPower = 100;
+	var fMax = teva_settings.frequency * 1000; 
+	var maxPower = 90;
 	var verMax = maxPower;
 	var verMin = 0;
-	var deltaVer = 0.1 * plotHeight;
+	
+	var deltaVer = (verMax - verMin) / Math.pow(10, Math.floor(Math.log10(verMax - verMin)));
+	if (deltaVer < 5) deltaVer *= 10;
+	deltaVer = plotHeight / deltaVer;
+	
 	var horMin = fMin;
-	var horMan = fMax;
-	var deltaHor = plotWidth / 20;
+	var horMax = fMax;
+	var deltaHor = (horMax - horMin) / Math.pow(10, Math.floor(Math.log10(horMax - horMin)));
+	if(deltaHor < 7) deltaHor *= 10;
+	deltaHor = plotWidth / deltaHor;
 	
 	// Calculate FFT
 	// This is stil just the power in dB.
@@ -279,7 +285,7 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var powerScaling = Math.log10(FFT_N) * -20 + scalingPerHz;
 	for(var i = 0; i < FFT_N; ++ i) {
 		var powerValue = (output[2*i]*output[2*i] + output[2*i+1]*output[2*i+1]);
-		powerSpectrum[i] = maxPower - Math.log10(powerValue) * -10 + powerScaling;
+		powerSpectrum[i] = Math.log10(powerValue) * 10;
 	};
 
 	// Set parameters
@@ -287,7 +293,7 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.beginPath();
 	drawingCtx.strokeStyle = color;
 	
-	var numSamples = 2*fMax/sampleRate * powerSpectrum.length ;
+	var numSamples = fMax/sampleRate * powerSpectrum.length ;
 	
 	// Draw axes
 	drawingCtx.beginPath();

@@ -82,7 +82,7 @@ button {
 	var draw_IntensityButton = document.getElementById('Draw_IntensityButton');
 	
 	function unsetDrawButtons () {
-		var buttonList = ['Draw_SoundButton', 'Draw_PitchButton', 'Draw_SpectrogramButton', 'Draw_LtasButton','Draw_InensityButton'];
+		var buttonList = ['Draw_SoundButton', 'Draw_PitchButton', 'Draw_SpectrogramButton', 'Draw_LtasButton', 'Draw_IntensityButton'];
 		for(var b in buttonList) {
 			var button = document.getElementById(buttonList[b]);
 			if (button) button.style.color = "black";
@@ -107,7 +107,8 @@ button {
 	var teva_settings = {
 		recSecs: 4,
 		language: "",
-		display: "Sound"
+		display: "Sound",
+		frequency: 2
 	};
 	
 	// Store settings

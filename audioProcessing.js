@@ -247,7 +247,7 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var tickLength = 10;
 	
 	var fMin = 0;
-	var fMax = 2000; // sampleRate / 2;
+	var fMax = teva_settings.frequency * 1000; // sampleRate / 2;
 	var maxPower = 100;
 	var verMax = maxPower;
 	var verMin = 0;
@@ -275,10 +275,11 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	// Calculate the power spectrum
 	var powerSpectrum = new Float32Array(FFT_N);
 	// Scale per frequency
-	var powerScaling = Math.log10(FFT_N) * 20
+	var scalingPerHz = Math.log10(typedArray.length/sampleRate) * 10;
+	var powerScaling = Math.log10(FFT_N) * -20 + scalingPerHz;
 	for(var i = 0; i < FFT_N; ++ i) {
 		var powerValue = (output[2*i]*output[2*i] + output[2*i+1]*output[2*i+1]);
-		powerSpectrum[i] = maxPower - Math.log10(powerValue) * -10 - powerScaling;
+		powerSpectrum[i] = maxPower - Math.log10(powerValue) * -10 + powerScaling;
 	};
 
 	// Set parameters

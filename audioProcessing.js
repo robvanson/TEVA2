@@ -77,8 +77,8 @@ function drawSignal (display) {
 		} else if (display == "Intensity") {
 			draw_intensity (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);		
 		} else {
-	}
-};
+		}
+	};
 }
 
 function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
@@ -94,9 +94,8 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 	var verMax = 1;
 	var verMin = -1;
 	var deltaVer = 0.1 * plotHeight;
-	var horMin = tmin;
-	var horMax = tmax;
-	var deltaHor = plotWidth / 20;
+	var horMin = 0;
+	var horMax = duration;
 	
 	// Set parameters
 	resetDrawingParam(drawingCtx);
@@ -106,29 +105,7 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 	var numSamples = typedArray.length;
 	
 	// Draw axes
-	drawingCtx.beginPath();
-	drawingCtx.lineWidth = 0.5;
-	drawingCtx.moveTo(horMargin, 0);
-	drawingCtx.lineTo(horMargin, plotHeight);
-	drawingCtx.lineTo(horMargin + plotWidth, plotHeight);
-	drawingCtx.stroke();
-	// Draw ticks
-	// Vertical
-	drawingCtx.beginPath();
-	drawingCtx.lineWidth = 0.1;
-	for (var v = 0; v <= plotHeight; v += deltaVer) {
-		drawingCtx.moveTo(horMargin - tickLength, v);
-		drawingCtx.lineTo(horMargin, v);
-		drawingCtx.stroke();
-	};
-	// Horizontal
-	drawingCtx.beginPath();
-	drawingCtx.lineWidth = 0.1;
-	for (var h = 0; h <= plotWidth; h += deltaHor) {
-		drawingCtx.moveTo(horMargin + h, plotHeight);
-		drawingCtx.lineTo(horMargin + h, plotHeight + 2*tickLength);
-		drawingCtx.stroke();
-	};
+	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
 
 	// Reset drawing
 	drawingCtx.beginPath();
@@ -153,7 +130,6 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	var horMargin = 0.02 * drawingCtx.canvas.width;
 	var plotHeight = 0.9 * drawingCtx.canvas.height
 	var verMargin = 0.02 * drawingCtx.canvas.height
-	var tickLength = 10;
 	
 	var tmin = 0;
 	var tmax = duration;
@@ -194,29 +170,7 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	var numSamples = intensityArray.length;
 	
 	// Draw axes
-	drawingCtx.beginPath();
-	drawingCtx.lineWidth = 0.5;
-	drawingCtx.moveTo(horMargin, 0);
-	drawingCtx.lineTo(horMargin, plotHeight);
-	drawingCtx.lineTo(horMargin + plotWidth, plotHeight);
-	drawingCtx.stroke();
-	// Draw ticks
-	// Vertical
-	drawingCtx.beginPath();
-	drawingCtx.lineWidth = 0.1;
-	for (var v = 0; v <= plotHeight; v += deltaVer) {
-		drawingCtx.moveTo(horMargin - tickLength, v);
-		drawingCtx.lineTo(horMargin, v);
-		drawingCtx.stroke();
-	};
-	// Horizontal
-	drawingCtx.beginPath();
-	drawingCtx.lineWidth = 0.1;
-	for (var h = 0; h <= plotWidth; h += deltaHor) {
-		drawingCtx.moveTo(horMargin + h, plotHeight);
-		drawingCtx.lineTo(horMargin + h, plotHeight + 2*tickLength);
-		drawingCtx.stroke();
-	};
+	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
 
 	// Reset drawing
 	drawingCtx.beginPath();
@@ -244,23 +198,14 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var horMargin = 0.02 * drawingCtx.canvas.width;
 	var plotHeight = 0.9 * drawingCtx.canvas.height
 	var verMargin = 0.02 * drawingCtx.canvas.height
-	var tickLength = 10;
 	
 	var fMin = 0;
 	var fMax = teva_settings.frequency * 1000; 
+	var horMin = fMin;
+	var horMax = fMax;
 	var maxPower = 90;
 	var verMax = maxPower;
 	var verMin = 0;
-	
-	var deltaVer = (verMax - verMin) / Math.pow(10, Math.floor(Math.log10(verMax - verMin)));
-	if (deltaVer < 5) deltaVer *= 10;
-	deltaVer = plotHeight / deltaVer;
-	
-	var horMin = fMin;
-	var horMax = fMax;
-	var deltaHor = (horMax - horMin) / Math.pow(10, Math.floor(Math.log10(horMax - horMin)));
-	if(deltaHor < 7) deltaHor *= 10;
-	deltaHor = plotWidth / deltaHor;
 	
 	// Calculate FFT
 	// This is stil just the power in dB.
@@ -296,29 +241,7 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var numSamples = fMax/sampleRate * powerSpectrum.length ;
 	
 	// Draw axes
-	drawingCtx.beginPath();
-	drawingCtx.lineWidth = 0.5;
-	drawingCtx.moveTo(horMargin, 0);
-	drawingCtx.lineTo(horMargin, plotHeight);
-	drawingCtx.lineTo(horMargin + plotWidth, plotHeight);
-	drawingCtx.stroke();
-	// Draw ticks
-	// Vertical
-	drawingCtx.beginPath();
-	drawingCtx.lineWidth = 0.1;
-	for (var v = 0; v <= plotHeight; v += deltaVer) {
-		drawingCtx.moveTo(horMargin - tickLength, v);
-		drawingCtx.lineTo(horMargin, v);
-		drawingCtx.stroke();
-	};
-	// Horizontal
-	drawingCtx.beginPath();
-	drawingCtx.lineWidth = 0.1;
-	for (var h = 0; h <= plotWidth; h += deltaHor) {
-		drawingCtx.moveTo(horMargin + h, plotHeight);
-		drawingCtx.lineTo(horMargin + h, plotHeight + 2*tickLength);
-		drawingCtx.stroke();
-	};
+	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
 
 	// Reset drawing
 	drawingCtx.beginPath();
@@ -338,6 +261,57 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 		};
 	};
 	drawingCtx.stroke();
+	
+};
+
+function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax, horMin, horMax) {
+	var scaleVer = verMax - verMin;
+	var scaleHor = horMax - horMin;
+	var tickLength = 10;
+	var deltaVer = scaleVer / Math.pow(10, Math.floor(Math.log10(scaleVer)));
+	if (deltaVer < 5) deltaVer *= 10;
+	deltaVer = plotHeight / deltaVer;
+	
+	var deltaHor = (scaleHor) / Math.pow(10, Math.floor(Math.log10(scaleHor)));
+	if(deltaHor < 7) deltaHor *= 10;
+	deltaHor = plotWidth / deltaHor;
+	
+	// Draw axes
+	drawingCtx.beginPath();
+	drawingCtx.lineWidth = 1;
+	drawingCtx.moveTo(horMargin, 0);
+	drawingCtx.lineTo(horMargin, plotHeight);
+	drawingCtx.lineTo(horMargin + plotWidth, plotHeight);
+	drawingCtx.stroke();
+	// Draw ticks
+	// Vertical
+	drawingCtx.beginPath();
+	drawingCtx.lineWidth = 1;
+	for (var v = plotHeight; v >= 0; v -= deltaVer) {
+		drawingCtx.beginPath();
+		drawingCtx.moveTo(horMargin - tickLength, v);
+		drawingCtx.lineTo(horMargin, v);
+		drawingCtx.stroke();
+	};
+	
+	// Write text
+	var fontSize = 20;
+	drawingCtx.font = fontSize+"px Helvetica";
+	drawingCtx.fillText(verMin+"", 0, plotHeight+fontSize);	
+	drawingCtx.fillText(verMax+"", 0, fontSize);	
+	drawingCtx.fillText(horMin+"", horMargin, plotHeight+ 2* tickLength+fontSize);	
+	drawingCtx.fillText(horMax+"", plotWidth, plotHeight+ 2* tickLength+fontSize);	
+
+
+	// Horizontal
+	drawingCtx.beginPath();
+	drawingCtx.lineWidth = 1;
+	for (var h = 0; h <= plotWidth; h += deltaHor) {
+		drawingCtx.beginPath();
+		drawingCtx.moveTo(horMargin + h, plotHeight);
+		drawingCtx.lineTo(horMargin + h, plotHeight + 2*tickLength);
+		drawingCtx.stroke();
+	};
 	
 };
 

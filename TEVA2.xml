@@ -139,10 +139,6 @@ button {
 	// Canvas drawing functions
 	var drawingArea = document.getElementById("DrawingArea");
 	
-	setDrawingParam("DrawingArea")
-	testDrawing("DrawingArea", "green", 0)
-	testDrawing("DrawingArea", "red", 500)
-	
 	// Set language (make that selectable)
 	var language = (userLanguage) ? userLanguage : "EN";
 	set_mainpageLanguage (language);

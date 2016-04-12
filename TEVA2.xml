@@ -49,7 +49,6 @@ button {
 <body  onunload="store_TEVA_settings (); " >
 	<div style="color: gray; position: fixed; top: 5%; left: 2%; font-size: 600%; text-align: center; " id="RecordingLight">&#9679;</div>
 	<div id="waveform" style="position: fixed; top: 5%; left: 20%; width: 60%; height: 60% " ></div>
-	<p><audio id='Audio' controls="false" hidden="true" ></audio></p>
 	
 	<canvas id="DrawingArea" width="1000" height="1000" style="position: fixed; top: 5%; left: 7.5%; width: 77.5%; height: 80%; "></canvas> 
 	
@@ -64,12 +63,14 @@ button {
 
     <script type="text/javascript">
 	// Set DOM parameters
+	var audioContext = new AudioContext();
+	var recordedSource = audioContext.createBufferSource(); // creates a sound source
+  
 	var recordingLight = document.getElementById('RecordingLight');
 	var record = document.getElementById('RecordButton');
 	var play = document.getElementById('PlayButton');
-	var mediaElement = document.getElementById('Audio');
-	var recordedBlob;
-	var recordedArray;
+	var recordedBlob, recordedBlobURL;
+	var recordedArray, currentAudioWindow;
 	var recordedSampleRate, recordedDuration;
 	var stopRecording, playSound;
 	
@@ -167,14 +168,14 @@ button {
 		
 		// Play recorded sound
 		play.onclick = function() {
-			mediaElement.play();
+			play_soundArray (currentAudioWindow, recordedSampleRate);
 		};
 		
 		// Stop
 		stopRecording = function() {
 			recordRTC.stopRecording(function(audioURL) { 
 				recordingLight.style.color = "gray";
-				mediaElement.src = audioURL;
+				recordedBlobURL = audioURL;
 				recordedBlob = recordRTC.getBlob();
 				// Do things with Blob!!!
 				processAudio (recordedBlob);

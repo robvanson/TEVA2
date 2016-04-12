@@ -45,36 +45,6 @@ var testDrawing = function (canvasId, color, order) {
 	drawingCtx.stroke();
 };
 
-function cut_silent_margins (recordedArray, sampleRate) {
-	// Find part with sound
-	var silentMargin = 0.1;
-	// Silence thresshold is -30 dB
-	var soundLength = recordedArray.length;
-	var thressHoldDb = 30;
-	var sumSquare = 0;
-	for (var i = 0; i < soundLength; ++i) {
-		sumSquare += recordedArray[i] * recordedArray[i];
-	};
-	var power = sumSquare / soundLength;
-	
-	var silenceThresshold = Math.pow(10, -1 * thressHoldDb / 20) * Math.sqrt (power);
-	var firstSample = soundLength;
-	var lastSample = 0;
-	for (var i = soundLength - 1; i >= 0; --i) {
-		if (Math.abs(recordedArray[i]) >= silenceThresshold) firstSample = i;
-	};
-	for (var i = 0; i < soundLength; ++i) {
-		if (Math.abs(recordedArray[i]) >= silenceThresshold) lastSample = i;
-	};
-	firstSample -= silentMargin * sampleRate;
-	if (firstSample < 0) firstSample = 0;
-	lastSample += silentMargin * sampleRate;
-	if (lastSample >= soundLength) soundLength - 1;
-	soundArray = recordedArray.subarray(firstSample, lastSample + 1);
-	
-	return soundArray;
-};
-
 function display_recording_level (id, recordedArray) {
 	var sumSquare = 0;
 	for (var i = 0; i < recordedArray.length; ++i) {
@@ -364,6 +334,12 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	
 };
 
+/*
+ * 
+ * Audio processing code
+ * 
+ */
+ 
 // Decode the audio blob
 var audioProcessing_decodedArray;
 function processAudio (blob) {
@@ -382,12 +358,71 @@ function decodedDone(decoded) {
 	var currentArray = typedArray;
 	recordedSampleRate = decoded.sampleRate;
 	recordedDuration = decoded.duration;
+	var duration = decoded.duration;
 	var length = decoded.length;
 	
 	// Process and draw audio
 	recordedArray = cut_silent_margins (currentArray, recordedSampleRate);
+	currentAudioWindow = recordedArray;
 	recordedDuration = recordedArray.length / recordedSampleRate;
 	
 	display_recording_level ("RecordingLight", recordedArray);
 	drawSignal (teva_settings.display)
 };
+
+function play_soundArray (soundArray, sampleRate) {
+	var audioCtx = new window.AudioContext;
+	var soundBuffer = audioCtx.createBuffer(1, soundArray.length, sampleRate);
+	var buffer = soundBuffer.getChannelData(0);	
+	for (var i = 0; i < soundArray.length; i++) {
+	     buffer[i] = soundArray[i];
+	};
+	
+	// Get an AudioBufferSourceNode.
+	// This is the AudioNode to use when we want to play an AudioBuffer
+	var source = audioCtx.createBufferSource();
+	// set the buffer in the AudioBufferSourceNode
+	source.buffer = soundBuffer;
+	// connect the AudioBufferSourceNode to the
+	// destination so we can hear the sound
+	source.connect(audioCtx.destination);
+	// start the source playing
+	source.start();
+};
+
+// Cut off the silent margins
+function cut_silent_margins (recordedArray, sampleRate) {
+	// Find part with sound
+	var silentMargin = 0.1;
+	// Silence thresshold is -30 dB
+	var soundLength = recordedArray.length;
+	var thressHoldDb = 30;
+	// Crude calculation of maximum power
+	var maxAmp = 0;
+	for (var i = 0; i < soundLength; ++i) {
+		var currentValue = Math.abs(recordedArray[i]);
+		if(currentValue > maxAmp) {
+			maxAmp = currentValue;
+		};
+	};
+	
+	var silenceThresshold = Math.pow(10, -1 * thressHoldDb / 20) * Math.sqrt (maxAmp);
+	var firstSample = soundLength;
+	var lastSample = 0;
+	for (var i = soundLength - 1; i >= 0; --i) {
+		if (Math.abs(recordedArray[i]) >= silenceThresshold) firstSample = i;
+	};
+	for (var i = 0; i < soundLength; ++i) {
+		if (Math.abs(recordedArray[i]) >= silenceThresshold) lastSample = i;
+	};
+	firstSample -= silentMargin * sampleRate;
+	if (firstSample < 0) firstSample = 0;
+	lastSample += silentMargin * sampleRate;
+	if (lastSample >= soundLength) lastSample = soundLength - 1;
+	var soundArray = new Float32Array(lastSample + 1 - firstSample);
+	for (var i = 0; i < lastSample + 1; ++i) {
+		soundArray [i] = recordedArray[firstSample + i];
+	};
+	return soundArray;
+};
+

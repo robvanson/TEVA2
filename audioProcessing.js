@@ -71,6 +71,7 @@ function drawSignal (display) {
 		if (display == "Sound") {
 			draw_waveform (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);
 		} else if (display == "Pitch") {
+			draw_pitch (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);		
 		} else if (display == "Spectrogram") {
 		} else if (display == "Ltas") {
 			draw_ltas (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);		
@@ -120,6 +121,64 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 		var currentTime = tmin + i * tScale;
 		var currentValue = typedArray[i];
 		drawingCtx.lineTo(horMargin + i * tScale , plotHeight / 2 - currentValue * vScale);
+	};
+	drawingCtx.stroke();
+};
+
+// Keep analysis
+var pitch = 0; 
+function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
+	var drawingCtx = setDrawingParam(canvasId);
+	var plotWidth = 0.95 * drawingCtx.canvas.width;
+	var horMargin = 0.02 * drawingCtx.canvas.width;
+	var plotHeight = 0.9 * drawingCtx.canvas.height
+	var verMargin = 0.02 * drawingCtx.canvas.height
+	
+	var fMin = 75;
+	var fMax = 600;
+	var dT = 0.01;
+	var horMin = 0;
+	var horMax = duration;
+	var maxPower = 40;
+	var verMax = fMax;
+	var verMin = 0;
+	
+	if (! pitch) pitch = calculate_Pitch (typedArray, sampleRate, fMin, fMax, dT);
+	
+	// Set parameters
+	resetDrawingParam(drawingCtx);
+	drawingCtx.beginPath();
+	drawingCtx.strokeStyle = color;
+	
+	var numSamples = horMax / dT;
+	
+	// Draw axes
+	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
+
+	// Reset drawing
+	drawingCtx.beginPath();
+	drawingCtx.lineWidth = 2;
+	
+	// Scale to plot area
+	var hScale = plotWidth / numSamples;
+	var vScale = plotHeight / verMax;
+	var resetLine = 0;
+	
+	drawingCtx.moveTo(horMargin, plotHeight - pitch[0] * vScale);
+	for(var i = 1; i < numSamples; ++i) {
+		var currentTime = horMin + i * hScale;
+		var currentValue = pitch[i];
+		if (currentValue > 0) {
+			if (resetLine) {
+				drawingCtx.moveTo(horMargin + i * hScale , plotHeight - currentValue * vScale);
+				resetLine = 0;
+			} else {
+				drawingCtx.lineTo(horMargin + i * hScale , plotHeight - currentValue * vScale);
+			};
+		} else {
+			drawingCtx.moveTo(horMargin + i * hScale , plotHeight - currentValue * vScale);
+			resetLine = 1;			
+		};
 	};
 	drawingCtx.stroke();
 };
@@ -315,6 +374,10 @@ function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax
 	
 };
 
+function initializeExistingAnalysis () {
+	pitch = 0;
+};
+
 /*
  * 
  * Audio processing code
@@ -341,6 +404,9 @@ function decodedDone(decoded) {
 	recordedDuration = decoded.duration;
 	var duration = decoded.duration;
 	var length = decoded.length;
+	
+	// Initialize existing recordings
+	initializeExistingAnalysis ();
 	
 	// Process and draw audio
 	recordedArray = cut_silent_margins (currentArray, recordedSampleRate);
@@ -400,10 +466,106 @@ function cut_silent_margins (recordedArray, sampleRate) {
 	if (firstSample < 0) firstSample = 0;
 	lastSample += silentMargin * sampleRate;
 	if (lastSample >= soundLength) lastSample = soundLength - 1;
-	var soundArray = new Float32Array(lastSample + 1 - firstSample);
-	for (var i = 0; i < lastSample + 1; ++i) {
+	var newLength = lastSample - firstSample;
+	var soundArray = new Float32Array(newLength);
+	for (var i = 0; i < newLength; ++i) {
 		soundArray [i] = recordedArray[firstSample + i];
 	};
 	return soundArray;
 };
 
+// Calculate autocorrelation in a window (array!!!) around time
+// You should divide the result by the autocorrelation of the window!!!
+function autocorrelation (sound, sampleRate, time, window) {
+	// Calculate FFT
+	// This is stil just the power in dB.
+	var soundLength = sound.length;
+	var windowLength = (window) ? window.length : soundLength;
+	var FFT_N = Math.pow(2, Math.ceil(Math.log2(windowLength))) * 2;
+	var input = new Float32Array(FFT_N * 2);
+	var output = new Float32Array(FFT_N * 2);
+	// The window can get outside of the sound itself
+	var offset = Math.floor(time * sampleRate - Math.ceil(windowLength/2));
+	if (window) {
+		for (var i = 0; i < FFT_N; ++i) {
+			input [2*i] = (i < windowLength && (offset + i) > 0 && (offset + i) < soundLength) ? sound [offset + i] * window [i] : 0;
+			input [2*i + 1] = 0;
+		};
+	} else {
+		for (var i = 0; i < FFT_N; ++i) {
+			input [2*i] = (i < windowLength && (offset + i) > 0 && (offset + i) < soundLength) ? sound [offset + i] : 0;
+			input [2*i + 1] = 0;
+		};
+	};
+	var fft = new FFT.complex(FFT_N, false);
+	var ifft = new FFT.complex(FFT_N, true);
+	fft.simple(output, input, 1)
+
+	// Calculate H * H(cj)
+	// Scale per frequency
+	for(var i = 0; i < FFT_N; ++ i) {
+		var squareValue = (output[2*i]*output[2*i] + output[2*i+1]*output[2*i+1]);
+		input[2*i] = squareValue;
+		input[2*i+1] = 0;
+		output[2*i] = 0;
+		output[2*i+1] = 0;
+	};
+	
+	ifft.simple(output, input, 1);
+	
+	var autocorr = new Float32Array(FFT_N);
+	for(var i = 0; i < FFT_N; ++ i) {
+		 autocorr[i] = output[2*i] / windowLength;
+	};
+
+	return autocorr;
+};
+
+function calculate_Pitch (sound, sampleRate, fMin, fMax, dT) {
+	var duration = sound.length / sampleRate;
+	var pitchArray = new Float32Array(Math.floor(duration / dT));
+	var lagMin = (fMax > 0) ? 1/fMax : 1/600;
+	var lagMax = (fMin > 0) ? 1/fMin : 1/60;
+	var thressHold = 0.05;
+	
+	// Set up window and calculate Autocorrelation of window
+	var windowDuration = lagMax * 6;
+	var windowSigma = 1/6;
+	var window = new Float32Array(windowDuration * sampleRate);
+	var windowCenter = (windowDuration * sampleRate -1) / 2;
+	var windowSumSq = 0;
+	for (var i = 0; i < windowDuration * sampleRate; ++i) {
+		var exponent = -0.5 * Math.pow( (i - windowCenter)/(windowSigma * windowCenter), 2);
+		window [i] = Math.exp(exponent);
+		windowSumSq += window [i]*window [i];
+	};
+	var WindowRMS = Math.sqrt(windowSumSq/window.length);
+
+	// calculate the autocorrelation of the window
+	var windowAutocorr = autocorrelation (window, sampleRate, windowDuration / 2, 0);
+	
+	// Step through the sound
+	var startLag = Math.floor(lagMin * sampleRate);
+	var endLag = Math.ceil(lagMax * sampleRate);
+	for (var t = 0; t < duration; t += dT) {
+		var autocorr = autocorrelation (sound, sampleRate, t, window);
+		for (var i = 0; i < autocorr.length; ++i) {
+			autocorr [i] /= (windowAutocorr [i]) ? (windowAutocorr [i] * WindowRMS) : 0;
+		};
+		
+		// Find the "real" pitch
+		var bestLag = 0;
+		var bestAmp = -100;
+		for (var j = startLag; j <= endLag; ++j) {
+			if (autocorr [j] > thressHold && autocorr [j] > bestAmp) {
+				bestAmp = autocorr [j];
+				bestLag = j;
+			};
+		};
+		var pitch = bestLag ? sampleRate / bestLag : 0;
+
+		// Add pitch
+		pitchArray [Math.floor(t / dT)] = pitch;
+	};
+	return pitchArray;
+};

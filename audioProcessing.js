@@ -437,6 +437,34 @@ function play_soundArray (soundArray, sampleRate) {
 	source.start();
 };
 
+// Set up window 
+function setupWindow (sampleRate, fMin) {
+	var lagMax = (fMin > 0) ? 1/fMin : 1/75;
+	var windowDuration = lagMax * 6;
+	var windowSigma = 1/6;
+	var window = new Float32Array(windowDuration * sampleRate);
+	var windowCenter = (windowDuration * sampleRate -1) / 2;
+	for (var i = 0; i < windowDuration * sampleRate; ++i) {
+		var exponent = -0.5 * Math.pow( (i - windowCenter)/(windowSigma * windowCenter), 2);
+		window [i] = Math.exp(exponent);
+	};
+	
+	return window;
+};
+
+function getWindowRMS (window) {
+	var windowSumSq = 0;
+	var windowRMS = 0;
+	if (window && window.length > 0) {
+		for (var i = 0; i < window.length; ++i) {
+			windowSumSq += window [i]*window [i];
+		};
+		windowRMS = Math.sqrt(windowSumSq/window.length);
+	};
+	
+	return windowRMS;
+};
+
 // Cut off the silent margins
 function cut_silent_margins (recordedArray, sampleRate) {
 	// Find part with sound
@@ -530,16 +558,8 @@ function calculate_Pitch (sound, sampleRate, fMin, fMax, dT) {
 	
 	// Set up window and calculate Autocorrelation of window
 	var windowDuration = lagMax * 6;
-	var windowSigma = 1/6;
-	var window = new Float32Array(windowDuration * sampleRate);
-	var windowCenter = (windowDuration * sampleRate -1) / 2;
-	var windowSumSq = 0;
-	for (var i = 0; i < windowDuration * sampleRate; ++i) {
-		var exponent = -0.5 * Math.pow( (i - windowCenter)/(windowSigma * windowCenter), 2);
-		window [i] = Math.exp(exponent);
-		windowSumSq += window [i]*window [i];
-	};
-	var WindowRMS = Math.sqrt(windowSumSq/window.length);
+	var window = setupWindow (sampleRate, fMin);
+	var windowRMS = getWindowRMS (window);
 
 	// calculate the autocorrelation of the window
 	var windowAutocorr = autocorrelation (window, sampleRate, windowDuration / 2, 0);
@@ -550,7 +570,7 @@ function calculate_Pitch (sound, sampleRate, fMin, fMax, dT) {
 	for (var t = 0; t < duration; t += dT) {
 		var autocorr = autocorrelation (sound, sampleRate, t, window);
 		for (var i = 0; i < autocorr.length; ++i) {
-			autocorr [i] /= (windowAutocorr [i]) ? (windowAutocorr [i] * WindowRMS) : 0;
+			autocorr [i] /= (windowAutocorr [i]) ? (windowAutocorr [i] * windowRMS) : 0;
 		};
 		
 		// Find the "real" pitch

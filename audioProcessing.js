@@ -103,7 +103,7 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.beginPath();
 	drawingCtx.strokeStyle = color;
 	
-	var numSamples = typedArray.length;
+	var numFrames = typedArray.length;
 	
 	// Draw axes
 	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
@@ -113,14 +113,14 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.lineWidth = 0.5;
 	
 	// Scale to plot area
-	var tScale = plotWidth / numSamples;
+	var tScale = plotWidth / numFrames;
 	var vScale = plotHeight / 2;
-	
+
 	drawingCtx.moveTo(horMargin, verMargin + plotHeight / 2 - typedArray[0] * vScale);
-	for(var i = 1; i < numSamples; i+=1) {
+	for(var i = 1; i < numFrames; i+=1) {
 		var currentTime = tmin + i * tScale;
 		var currentValue = typedArray[i];
-		drawingCtx.lineTo(horMargin + i * tScale , plotHeight / 2 - currentValue * vScale);
+		drawingCtx.lineTo(horMargin + currentTime , plotHeight / 2 - currentValue * vScale);
 	};
 	drawingCtx.stroke();
 };
@@ -150,7 +150,7 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.beginPath();
 	drawingCtx.strokeStyle = color;
 	
-	var numSamples = horMax / dT;
+	var numFrames = horMax / dT;
 	
 	// Draw axes
 	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
@@ -160,12 +160,12 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.lineWidth = 2;
 	
 	// Scale to plot area
-	var hScale = plotWidth / numSamples;
+	var hScale = plotWidth / numFrames;
 	var vScale = plotHeight / verMax;
 	var resetLine = 0;
 	
 	drawingCtx.moveTo(horMargin, plotHeight - pitch[0] * vScale);
-	for(var i = 1; i < numSamples; ++i) {
+	for(var i = 1; i < numFrames; ++i) {
 		var currentTime = horMin + i * hScale;
 		var currentValue = pitch[i];
 		if (currentValue > 0) {
@@ -183,6 +183,7 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.stroke();
 };
 
+var intensity = 0; 
 function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
@@ -190,9 +191,13 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	var plotHeight = 0.9 * drawingCtx.canvas.height
 	var verMargin = 0.02 * drawingCtx.canvas.height
 	
+	var fMin = 60;
+	var fMax = 600;
+	var dT = 0.01;
+	
 	var tmin = 0;
 	var tmax = duration;
-	var maxPower = 100;
+	var maxPower = 90;
 	var verMax = maxPower;
 	var verMin = 0;
 	var deltaVer = 0.1 * plotHeight;
@@ -200,33 +205,19 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	var horMax = tmax;
 	var deltaHor = plotWidth / 20;
 	
-	// Calculate Intensity
-	// This is stil just the power in dB.
-	var dT = 0.01
-	var numFrames = Math.ceil(duration / dT);
-	var intensityArray = new Float32Array(numFrames);
-	for (var t=0; t < duration; t += dT) {
-		var sumSquares = 0;
-		var n = 0;
-		var jstart = Math.floor(t * sampleRate);
-		var jend = Math.ceil((t + dT) * sampleRate);
-		if (jend > typedArray.length) jend = typedArray.length;
-		for (var j = jstart; j < jend; ++j) {
-			sumSquares += typedArray[j] * typedArray[j];
-			++n;
-		};
-		var i = Math.floor(t / dT);
-		var power = (n > 0) ? maxPower - Math.log10(sumSquares / n) * -10 : 0;
-		if (power < 0) power = 0;
-		intensityArray [i] = power;
-	};
-	
+	// Calculate Intensity (negative wrt amplitude 1)
+	intensity = calculate_Intensity (typedArray, sampleRate, fMin, fMax, dT)
+	// Determine dynamic range
+	var minIntensity = Math.min.apply(Math, intensity);
+	maxPower = Math.abs(10*Math.floor(minIntensity/10) - 10);
+	verMax = maxPower;
+
 	// Set parameters
 	resetDrawingParam(drawingCtx);
 	drawingCtx.beginPath();
 	drawingCtx.strokeStyle = color;
 	
-	var numSamples = intensityArray.length;
+	var numFrames = intensity.length;
 	
 	// Draw axes
 	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
@@ -236,14 +227,14 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.lineWidth = 0.5;
 	
 	// Scale to plot area
-	var tScale = plotWidth / numSamples;
+	var tScale = plotWidth / numFrames;
 	var vScale = plotHeight / verMax;
 	var resetLine = 0;
 	
-	drawingCtx.moveTo(horMargin, plotHeight - intensityArray[0] * vScale);
-	for(var i = 1; i < numSamples; i+=1) {
+	drawingCtx.moveTo(horMargin, plotHeight - intensity[0] * vScale);
+	for(var i = 1; i < numFrames; i+=1) {
 		var currentTime = tmin + i * tScale;
-		var currentValue = intensityArray[i];
+		var currentValue = maxPower + intensity[i];
 		if (currentValue > 0) {
 			drawingCtx.lineTo(horMargin + i * tScale , plotHeight - currentValue * vScale);
 		};
@@ -297,7 +288,7 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.beginPath();
 	drawingCtx.strokeStyle = color;
 	
-	var numSamples = fMax/sampleRate * powerSpectrum.length ;
+	var numFrames = fMax/sampleRate * powerSpectrum.length ;
 	
 	// Draw axes
 	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
@@ -307,12 +298,12 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.lineWidth = 0.5;
 	
 	// Scale to plot area
-	var hScale = plotWidth / numSamples;
+	var hScale = plotWidth / numFrames;
 	var vScale = plotHeight / verMax;
 	var resetLine = 0;
 	
 	drawingCtx.moveTo(horMargin, plotHeight - powerSpectrum[0] * vScale);
-	for(var i = 1; i < numSamples; ++i) {
+	for(var i = 1; i < numFrames; ++i) {
 		var currentTime = fMin + i * hScale;
 		var currentValue = powerSpectrum[i];
 		if (currentValue > 0) {
@@ -376,6 +367,7 @@ function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax
 
 function initializeExistingAnalysis () {
 	pitch = 0;
+	intensity = 0;
 };
 
 /*
@@ -438,7 +430,7 @@ function play_soundArray (soundArray, sampleRate) {
 };
 
 // Set up window 
-function setupWindow (sampleRate, fMin) {
+function setupGaussWindow (sampleRate, fMin) {
 	var lagMax = (fMin > 0) ? 1/fMin : 1/75;
 	var windowDuration = lagMax * 6;
 	var windowSigma = 1/6;
@@ -466,19 +458,23 @@ function getWindowRMS (window) {
 };
 
 // Cut off the silent margins
+// ISSUE: After the first recording, there is a piece at the start missing.
+// This is now cut out
 function cut_silent_margins (recordedArray, sampleRate) {
 	// Find part with sound
 	var silentMargin = 0.1;
 	// Silence thresshold is -30 dB
 	var soundLength = recordedArray.length;
-	var thressHoldDb = 30;
+	var thressHoldDb = 20;
 	// Crude calculation of maximum power
 	var maxAmp = 0;
+	var firstNonZero = -1;
 	for (var i = 0; i < soundLength; ++i) {
 		var currentValue = Math.abs(recordedArray[i]);
 		if(currentValue > maxAmp) {
 			maxAmp = currentValue;
 		};
+		if (firstNonZero < 0 && currentValue > 0) firstNonZero = i;
 	};
 	
 	var silenceThresshold = Math.pow(10, -1 * thressHoldDb / 20) * Math.sqrt (maxAmp);
@@ -492,9 +488,12 @@ function cut_silent_margins (recordedArray, sampleRate) {
 	};
 	firstSample -= silentMargin * sampleRate;
 	if (firstSample < 0) firstSample = 0;
+	// Remove non-recorded part
+	if (firstSample < firstNonZero) firstSample = firstNonZero;
 	lastSample += silentMargin * sampleRate;
 	if (lastSample >= soundLength) lastSample = soundLength - 1;
 	var newLength = lastSample - firstSample;
+
 	var soundArray = new Float32Array(newLength);
 	for (var i = 0; i < newLength; ++i) {
 		soundArray [i] = recordedArray[firstSample + i];
@@ -558,7 +557,7 @@ function calculate_Pitch (sound, sampleRate, fMin, fMax, dT) {
 	
 	// Set up window and calculate Autocorrelation of window
 	var windowDuration = lagMax * 6;
-	var window = setupWindow (sampleRate, fMin);
+	var window = setupGaussWindow (sampleRate, fMin);
 	var windowRMS = getWindowRMS (window);
 
 	// calculate the autocorrelation of the window
@@ -588,4 +587,54 @@ function calculate_Pitch (sound, sampleRate, fMin, fMax, dT) {
 		pitchArray [Math.floor(t / dT)] = pitch;
 	};
 	return pitchArray;
+};
+
+function getPower (sound, sampleRate, time, window) {
+	var soundLength = sound.length;
+	var duration = sound.length / sampleRate;
+	var windowLength = (window) ? window.length : soundLength;
+	var sumSquare = 0;
+	var windowSUM = 0;
+	// The window can get outside of the sound itself
+	var offset = Math.floor(time * sampleRate - Math.ceil(windowLength/2));
+	if (window) {
+		for (var i = 0; i < windowLength; ++i) {
+			var value = ((offset + i) > 0 && (offset + i) < soundLength) ? sound [offset + i] * window [i] : 0;
+			sumSquare += value*value;
+			windowSUM += window [i]*window [i];
+		};
+	} else {
+		for (var i = 0; i < FFT_N; ++i) {
+			var value = ((offset + i) > 0 && (offset + i) < soundLength) ? sound [offset + i] : 0;
+			sumSquare += value*value;
+			windowSUM += 1;
+		};
+	};
+
+	if (windowSUM <= 0) windowSUM = 1;
+	var power = sumSquare / windowSUM;
+	return power;
+};
+
+
+
+function calculate_Intensity (sound, sampleRate, fMin, fMax, dT) {
+	if (!intensity) {
+		var duration = sound.length / sampleRate;
+		var lagMin = (fMax > 0) ? 1/fMax : 1/600;
+		var lagMax = (fMin > 0) ? 1/fMin : 1/60;
+		intensity = new Float32Array(Math.floor(duration / dT));
+		
+		// Set up window
+		var windowDuration = lagMax * 6;
+		var window = setupGaussWindow (sampleRate, fMin);
+		
+		// Step through the sound
+		for (var t = 0; t < duration; t += dT) {
+			var power = getPower (sound, sampleRate, t, window);
+			var powerdB = (power > 0) ? Math.log10(power) * 10 : -100;
+			intensity [Math.floor(t / dT)] = powerdB;
+		};
+	};
+	return intensity;
 };

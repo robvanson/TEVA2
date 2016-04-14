@@ -187,7 +187,6 @@ button {
 		
 		// onClick Start
 		record.onclick = function() {
-			recordRTC.startRecording();
 		    play.disabled = true;
 		    record.disabled = true;
 		    record.style.color = "gray";
@@ -197,6 +196,7 @@ button {
 			recordingLight.style.fontSize = "600%";
 		    recordingLight.style.color = "red";
 		    
+			recordRTC.startRecording();
 		    // Set Timeout for stop
 		    setTimeout(stopRecording, teva_settings.recSecs * 1000)
 		}

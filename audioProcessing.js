@@ -459,11 +459,11 @@ function getWindowRMS (window) {
 
 // Cut off the silent margins
 // ISSUE: After the first recording, there is a piece at the start missing.
-// This is now cut out
+// This is now cut off
 function cut_silent_margins (recordedArray, sampleRate) {
 	// Find part with sound
 	var silentMargin = 0.1;
-	// Silence thresshold is -30 dB
+	// Silence thresshold is -20 dB
 	var soundLength = recordedArray.length;
 	var thressHoldDb = 20;
 	// Crude calculation of maximum power

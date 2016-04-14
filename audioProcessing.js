@@ -144,6 +144,7 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
 	var verMin = 0;
 	
 	if (! pitch) pitch = calculate_Pitch (typedArray, sampleRate, fMin, fMax, dT);
+	verMax = Math.max.apply(Math, pitch) * 1.5;
 	
 	// Set parameters
 	resetDrawingParam(drawingCtx);
@@ -234,7 +235,7 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.moveTo(horMargin, plotHeight - intensity[0] * vScale);
 	for(var i = 1; i < numFrames; i+=1) {
 		var currentTime = tmin + i * tScale;
-		var currentValue = maxPower + intensity[i];
+		var currentValue = maxPower + (isNaN(intensity[i]) ? -maxPower : intensity[i]);
 		if (currentValue > 0) {
 			drawingCtx.lineTo(horMargin + i * tScale , plotHeight - currentValue * vScale);
 		};
@@ -345,12 +346,14 @@ function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax
 	};
 	
 	// Write text
+	var verMaxText = verMax > 10 ? Math.round(verMax) : Math.round(verMax*10)/10;
+	var horMaxText = horMax > 10 ? Math.round(horMax) : Math.round(horMax*10)/10;
 	var fontSize = 20;
 	drawingCtx.font = fontSize+"px Helvetica";
 	drawingCtx.fillText(verMin+"", 0, plotHeight+fontSize);	
-	drawingCtx.fillText(verMax+"", 0, fontSize);	
+	drawingCtx.fillText(verMaxText+"", 0, fontSize);	
 	drawingCtx.fillText(horMin+"", horMargin, plotHeight+ 2* tickLength+fontSize);	
-	drawingCtx.fillText(horMax+"", plotWidth, plotHeight+ 2* tickLength+fontSize);	
+	drawingCtx.fillText(horMaxText+"", plotWidth, plotHeight+ 2* tickLength+fontSize);	
 
 
 	// Horizontal
@@ -553,7 +556,7 @@ function calculate_Pitch (sound, sampleRate, fMin, fMax, dT) {
 	var pitchArray = new Float32Array(Math.floor(duration / dT));
 	var lagMin = (fMax > 0) ? 1/fMax : 1/600;
 	var lagMax = (fMin > 0) ? 1/fMin : 1/60;
-	var thressHold = 0.05;
+	var thressHold = 0.01;
 	
 	// Set up window and calculate Autocorrelation of window
 	var windowDuration = lagMax * 6;
@@ -604,7 +607,7 @@ function getPower (sound, sampleRate, time, window) {
 			windowSUM += window [i]*window [i];
 		};
 	} else {
-		for (var i = 0; i < FFT_N; ++i) {
+		for (var i = 0; i < windowLength; ++i) {
 			var value = ((offset + i) > 0 && (offset + i) < soundLength) ? sound [offset + i] : 0;
 			sumSquare += value*value;
 			windowSUM += 1;
@@ -615,8 +618,6 @@ function getPower (sound, sampleRate, time, window) {
 	var power = sumSquare / windowSUM;
 	return power;
 };
-
-
 
 function calculate_Intensity (sound, sampleRate, fMin, fMax, dT) {
 	if (!intensity) {
@@ -630,10 +631,12 @@ function calculate_Intensity (sound, sampleRate, fMin, fMax, dT) {
 		var window = setupGaussWindow (sampleRate, fMin);
 		
 		// Step through the sound
+		var i = 0;
 		for (var t = 0; t < duration; t += dT) {
 			var power = getPower (sound, sampleRate, t, window);
-			var powerdB = (power > 0) ? Math.log10(power) * 10 : -100;
-			intensity [Math.floor(t / dT)] = powerdB;
+			var powerdB = (power > 0) ? Math.log10(power) * 10 : 1/0;
+			if (i < intensity.length) intensity [i] = powerdB;
+			++i;
 		};
 	};
 	return intensity;

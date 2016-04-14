@@ -134,7 +134,7 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
 	var plotHeight = 0.9 * drawingCtx.canvas.height
 	var verMargin = 0.02 * drawingCtx.canvas.height
 	
-	var fMin = 75;
+	var fMin = 60;
 	var fMax = 600;
 	var dT = 0.01;
 	var horMin = 0;
@@ -144,7 +144,7 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
 	var verMin = 0;
 	
 	if (! pitch) pitch = calculate_Pitch (typedArray, sampleRate, fMin, fMax, dT);
-	verMax = Math.max.apply(Math, pitch) * 1.5;
+	verMax = Math.ceil(Math.max.apply(Math, pitch) * 1.5 / 10) * 10;
 	
 	// Set parameters
 	resetDrawingParam(drawingCtx);
@@ -346,14 +346,14 @@ function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax
 	};
 	
 	// Write text
-	var verMaxText = verMax > 10 ? Math.round(verMax) : Math.round(verMax*10)/10;
-	var horMaxText = horMax > 10 ? Math.round(horMax) : Math.round(horMax*10)/10;
+	var verMaxText = verMax > 10 ? Math.round(verMax) : (verMax > 1) ? Math.round(verMax*10)/10 : verMax .toFixed(2);
+	var horMaxText = horMax > 10 ? Math.round(horMax) : (horMax > 1) ? Math.round(horMax*10)/10 : horMax .toFixed(2);
 	var fontSize = 20;
 	drawingCtx.font = fontSize+"px Helvetica";
 	drawingCtx.fillText(verMin+"", 0, plotHeight+fontSize);	
-	drawingCtx.fillText(verMaxText+"", 0, fontSize);	
+	drawingCtx.fillText((verMax.toPrecision(3)), 0, fontSize);	
 	drawingCtx.fillText(horMin+"", horMargin, plotHeight+ 2* tickLength+fontSize);	
-	drawingCtx.fillText(horMaxText+"", plotWidth, plotHeight+ 2* tickLength+fontSize);	
+	drawingCtx.fillText((horMax.toPrecision(3)), plotWidth + horMargin - (horMax.toPrecision(3).length * fontSize/2), plotHeight+ 2* tickLength+fontSize);	
 
 
 	// Horizontal

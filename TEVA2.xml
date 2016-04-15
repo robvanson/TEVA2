@@ -71,10 +71,16 @@ button {
 	var recordingLight = document.getElementById('RecordingLight');
 	var record = document.getElementById('RecordButton');
 	var play = document.getElementById('PlayButton');
-	var recordedBlob, recordedBlobURL;
-	var recordedArray, currentAudioWindow;
-	var recordedSampleRate, recordedDuration;
 	var stopRecording, playSound;
+
+	/*
+	 * Global variables from audioProcessing
+	 * 
+	 * var recordedBlob, recordedBlobURL;
+	 * var recordedArray, currentAudioWindow;
+	 * var recordedSampleRate, recordedDuration;
+	 *
+	 */
 	
 	// Buttons
 	var draw_SoundButton = document.getElementById('Draw_SoundButton');

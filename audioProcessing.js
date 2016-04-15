@@ -16,7 +16,12 @@
  * You can find a copy of the GNU General Public License at
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
- 
+
+// Global variables
+var recordedBlob, recordedBlobURL;
+var recordedArray, currentAudioWindow;
+var recordedSampleRate, recordedDuration;
+
 /*
  * 
  * Audio processing code
@@ -42,7 +47,6 @@ function decodedDone(decoded) {
 	var currentArray = typedArray;
 	recordedSampleRate = decoded.sampleRate;
 	recordedDuration = decoded.duration;
-	var duration = decoded.duration;
 	var length = decoded.length;
 	
 	// Process and draw audio

@@ -15,6 +15,18 @@
  * You can find a copy of the GNU General Public License at
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
+
+
+/*
+ * Global variables from audioProcessing
+ * 
+ * var recordedBlob, recordedBlobURL;
+ * var recordedArray, currentAudioWindow;
+ * var recordedSampleRate, recordedDuration;
+ *
+ */
+
+
 var setDrawingParam = function (canvasId) {
 	var drawingArea = document.getElementById(canvasId);
 	var drawingCtx = drawingArea.getContext("2d");

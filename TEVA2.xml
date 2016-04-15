@@ -43,6 +43,7 @@ button {
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <script type="text/javascript" src="internationalization_tables.js" ></script>   
 <script type="text/javascript" src="audioProcessing.js" ></script>   
+<script type="text/javascript" src="plotting.js" ></script>   
 <script type="text/javascript" src="fft.js/lib/complex.js" ></script>   
 <script type="text/javascript" src="fft.js/lib/real.js" ></script>   
 <script type="text/javascript" src="https://cdn.webrtc-experiment.com/RecordRTC.js" defer="true" ></script>
@@ -175,6 +176,8 @@ button {
 				recordingLight.style.color = "gray";
 				recordedBlobURL = audioURL;
 				recordedBlob = recordRTC.getBlob();
+				// Initialize existing recordings
+				initializeExistingAnalysis ();
 				// Do things with Blob!!!
 				processAudio (recordedBlob);
 			});

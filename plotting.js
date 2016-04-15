@@ -220,9 +220,14 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	
 	// Calculate Intensity (negative wrt amplitude 1)
 	intensity = calculate_Intensity (typedArray, sampleRate, fMin, fMax, dT)
-	// Determine dynamic range
-	var minIntensity = Math.min.apply(Math, intensity);
-	maxPower = Math.abs(10*Math.floor(minIntensity/10) - 10);
+	// Determine dynamic range (watch out for NEGATIVE INFINITY)
+	var minIntensity = maxPower;
+	var maxIntensity = -maxPower;
+	for (var i = 0; i < intensity.length; ++i) {
+		if(intensity[i] > Number.NEGATIVE_INFINITY && minIntensity > intensity[i]) minIntensity = intensity[i];
+		if(intensity[i] > Number.NEGATIVE_INFINITY && maxIntensity < intensity[i]) maxIntensity = intensity[i];
+	};
+	maxPower = Math.abs(10*Math.floor((maxIntensity - minIntensity)/10) - 10);
 	verMax = maxPower;
 
 	// Set parameters

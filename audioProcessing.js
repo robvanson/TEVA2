@@ -113,36 +113,46 @@ function cut_silent_margins (recordedArray, sampleRate) {
 	// Find part with sound
 	var silentMargin = 0.1;
 	// Silence thresshold is -20 dB
+	var thressHoldDb = 25;
+	// Stepsize
+	var dT = 0.01;
 	var soundLength = recordedArray.length;
-	var thressHoldDb = 20;
-	// Crude calculation of maximum power
-	var maxAmp = 0;
-	var firstNonZero = -1;
-	for (var i = 0; i < soundLength; ++i) {
-		var currentValue = Math.abs(recordedArray[i]);
-		if(currentValue > maxAmp) {
-			maxAmp = currentValue;
-		};
-		if (firstNonZero < 0 && currentValue > 0) firstNonZero = i;
+
+	// There is sometimes (often) a delay before recording is started
+	var firstNonZero = 0;
+	while (firstNonZero < recordedArray.length &&  (isNaN(recordedArray[firstNonZero]) || recordedArray[firstNonZero] == 0)) {
+		++firstNonZero
 	};
 	
-	var silenceThresshold = Math.pow(10, -1 * thressHoldDb / 20) * Math.sqrt (maxAmp);
-	var firstSample = soundLength;
-	var lastSample = 0;
-	for (var i = soundLength - 1; i >= 0; --i) {
-		if (Math.abs(recordedArray[i]) >= silenceThresshold) firstSample = i;
-	};
-	for (var i = 0; i < soundLength; ++i) {
-		if (Math.abs(recordedArray[i]) >= silenceThresshold) lastSample = i;
-	};
-	firstSample -= silentMargin * sampleRate;
-	if (firstSample < 0) firstSample = 0;
-	// Remove non-recorded part
-	if (firstSample < firstNonZero) firstSample = firstNonZero;
-	lastSample += silentMargin * sampleRate;
-	if (lastSample >= soundLength) lastSample = soundLength - 1;
-	var newLength = lastSample - firstSample;
+	// Calculation intensity
+	var currentIntensity = calculate_Intensity (recordedArray, sampleRate, 75, 600, 0.01);
+	var maxInt = Math.max.apply(Math, currentIntensity);
+	var silenceThresshold = maxInt - thressHoldDb;
 
+	var firstFrame = 0;
+	while (firstFrame < currentIntensity.length && (currentIntensity[firstFrame] == Number.NEGATIVE_INFINITY || currentIntensity[firstFrame] < silenceThresshold)) {
+		++firstFrame;
+	};
+	
+	var lastFrame = currentIntensity.length - 1;
+	while (lastFrame > 0 && (currentIntensity[lastFrame] == Number.NEGATIVE_INFINITY || currentIntensity[lastFrame] < silenceThresshold)) {
+		--lastFrame;
+	};
+
+	if ((firstFrame >= currentIntensity.length - silentMargin/dT) || (lastFrame <= silentMargin/dT) || lastFrame <= firstFrame) {
+		firstFrame = 0;
+		lastFrame = currentIntensity.length - 1;
+	};
+	
+	// Convert frames to samples
+	var firstSample = (firstFrame * dT - silentMargin) * sampleRate;
+	var lastSample = ((lastFrame + 1) * dT + silentMargin) * sampleRate;
+	if (firstSample < 0) firstSample = 0;
+	// Remove non-recorded part froms tart
+	if (firstSample < firstNonZero) firstSample = firstNonZero;
+	if (lastSample >= soundLength) lastSample = soundLength - 1;
+
+	var newLength = Math.ceil(lastSample - firstSample);
 	var soundArray = new Float32Array(newLength);
 	for (var i = 0; i < newLength; ++i) {
 		soundArray [i] = recordedArray[firstSample + i];
@@ -280,7 +290,7 @@ function calculate_Intensity (sound, sampleRate, fMin, fMax, dT) {
 		var i = 0;
 		for (var t = 0; t < duration; t += dT) {
 			var power = getPower (sound, sampleRate, t, window);
-			var powerdB = (power > 0) ? Math.log10(power) * 10 : 1/0;
+			var powerdB = (power > 0) ? Math.log10(power) * 10 : Number.NEGATIVE_INFINITY;
 			if (i < intensity.length) intensity [i] = powerdB;
 			++i;
 		};

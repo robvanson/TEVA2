@@ -110,6 +110,20 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 	var horMin = 0;
 	var horMax = duration;
 	
+	// Determine amplitude
+	var amplitude = 0;
+	for(var i = 1; i < typedArray.length; ++i) {
+		var value = Math.abs(typedArray[i]);
+		if (value > amplitude) amplitude = value;
+	};
+	if (amplitude < 0.071) {
+		verMax = Math.ceil(110 * amplitude)/100;
+		verMin = -verMax;
+	} else if (amplitude < 0.71) {
+		verMax = Math.ceil(11 * amplitude)/10;
+		verMin = -verMax;
+	};
+	
 	// Set parameters
 	resetDrawingParam(drawingCtx);
 	drawingCtx.beginPath();
@@ -126,7 +140,7 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 	
 	// Scale to plot area
 	var tScale = plotWidth / numFrames;
-	var vScale = plotHeight / 2;
+	var vScale = plotHeight / (verMax - verMin);
 
 	drawingCtx.moveTo(horMargin, verMargin + plotHeight / 2 - typedArray[0] * vScale);
 	for(var i = 1; i < numFrames; i+=1) {
@@ -210,7 +224,7 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	
 	var tmin = 0;
 	var tmax = duration;
-	var maxPower = 90;
+	var maxPower = 96;
 	var verMax = maxPower;
 	var verMin = 0;
 	var deltaVer = 0.1 * plotHeight;
@@ -218,16 +232,13 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	var horMax = tmax;
 	var deltaHor = plotWidth / 20;
 	
-	// Calculate Intensity (negative wrt amplitude 1)
-	intensity = calculate_Intensity (typedArray, sampleRate, fMin, fMax, dT)
-	// Determine dynamic range (watch out for NEGATIVE INFINITY)
-	var minIntensity = maxPower;
-	var maxIntensity = -maxPower;
-	for (var i = 0; i < intensity.length; ++i) {
-		if(intensity[i] > Number.NEGATIVE_INFINITY && minIntensity > intensity[i]) minIntensity = intensity[i];
-		if(intensity[i] > Number.NEGATIVE_INFINITY && maxIntensity < intensity[i]) maxIntensity = intensity[i];
+	// Calculate Intensity 
+	if (!intensity) {
+		intensity = calculate_Intensity (typedArray, sampleRate, fMin, fMax, dT);
 	};
-	maxPower = Math.abs(10*Math.floor((maxIntensity - minIntensity)/10) - 10);
+	// Determine dynamic range 
+	var maxIntensity = Math.max.apply(Math, intensity);
+	maxPower = 10*Math.ceil(maxIntensity/10) + 10;
 	verMax = maxPower;
 
 	// Set parameters
@@ -252,7 +263,7 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.moveTo(horMargin, plotHeight - intensity[0] * vScale);
 	for(var i = 1; i < numFrames; i+=1) {
 		var currentTime = tmin + i * tScale;
-		var currentValue = maxPower + (isNaN(intensity[i]) ? -maxPower : intensity[i]);
+		var currentValue = intensity[i];
 		if (currentValue > 0) {
 			drawingCtx.lineTo(horMargin + i * tScale , plotHeight - currentValue * vScale);
 		};
@@ -272,8 +283,6 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var horMin = fMin;
 	var horMax = fMax;
 	var maxPower = 90;
-	var verMax = maxPower;
-	var verMin = 0;
 	
 	// Calculate FFT
 	// This is stil just the power in dB.
@@ -301,12 +310,22 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 		powerSpectrum[i] = Math.log10(powerValue) * 10;
 	};
 
+	// Set scales
+	var numFrames = fMax/sampleRate * powerSpectrum.length ;
+	var maxSpectrum = 0;
+	var minSpectrum = maxPower;
+	for (var i = 0; i < numFrames; ++i) {
+		if (powerSpectrum [i] > maxSpectrum) maxSpectrum = powerSpectrum [i];
+		if (powerSpectrum [i] < minSpectrum) minSpectrum = powerSpectrum [i];
+	};
+	maxPower = Math.ceil(1.1 * maxSpectrum / 10) * 10;
+	var verMax = maxPower;
+	var verMin = minSpectrum < 0 ? Math.floor(minSpectrum / 10) * 10 : 0;
+
 	// Set parameters
 	resetDrawingParam(drawingCtx);
 	drawingCtx.beginPath();
 	drawingCtx.strokeStyle = color;
-	
-	var numFrames = fMax/sampleRate * powerSpectrum.length ;
 	
 	// Draw axes
 	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);

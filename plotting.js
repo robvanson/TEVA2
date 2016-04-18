@@ -57,21 +57,33 @@ var testDrawing = function (canvasId, color, order) {
 	drawingCtx.stroke();
 };
 
+var lightSize = 15;
+var maxPowerRecorded = 90;
+var thresshold = 0.1;
 function display_recording_level (id, recordedArray) {
 	var sumSquare = 0;
+	var nSamples = 0;
 	for (var i = 0; i < recordedArray.length; ++i) {
-		sumSquare += recordedArray[i] * recordedArray[i];
+		if(Math.abs(recordedArray[i]) > thresshold) {
+			sumSquare += recordedArray[i] * recordedArray[i];
+			++nSamples;
+		};
 	};
-	var power = sumSquare / recordedArray.length;
-	var dBpower = Math.log10(power) * -10
-	// limit power to between -6 and -55 dB)
-	dBpower = (dBpower > 6) ? dBpower - 6 : 0;
-	dBpower = Math.min(dBpower, 55);
-	
+	var power = sumSquare / nSamples;
+	var dBpower = (power > 0) ? maxPowerRecorded + Math.log10(power) * 10 : 0;
 	var recordingLight = document.getElementById(id);
-	recordingLight.style.top = (5 + (10*dBpower / 600) * 6 ) + "%";
-	recordingLight.style.left = (2 + (10*dBpower / 600) * 2 ) + "%";
-	recordingLight.style.fontSize = (600 - 10*dBpower) + "%";
+	var currentWidth = 100*recordingLight.clientWidth/window.innerWidth;
+	var currentHeight = 100*recordingLight.clientHeight/window.innerHeight;
+	var horMidpoint = 2 + currentWidth/2;
+	var verMidpoint = 5 + currentHeight/2;
+	
+	// New fontSize
+	var fontSize = lightSize*dBpower/maxPowerRecorded + 1;
+	recordingLight.style.fontSize = fontSize + "vmin";
+	
+	// position = midpoint - newFontSize / 2
+	recordingLight.style.top = (verMidpoint - ((fontSize/lightSize)*currentHeight)/2) + "%";
+	recordingLight.style.left = (horMidpoint - ((fontSize/lightSize)*currentWidth)/2) + "%";
 };
 
 function drawSignal (display) {
@@ -141,11 +153,10 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 	// Scale to plot area
 	var tScale = plotWidth / numFrames;
 	var vScale = plotHeight / (verMax - verMin);
-
 	drawingCtx.moveTo(horMargin, verMargin + plotHeight / 2 - typedArray[0] * vScale);
 	for(var i = 1; i < numFrames; i+=1) {
 		var currentTime = tmin + i * tScale;
-		var currentValue = typedArray[i];
+		var currentValue = (typedArray[i]) ? typedArray[i] : 0;
 		drawingCtx.lineTo(horMargin + currentTime , plotHeight / 2 - currentValue * vScale);
 	};
 	drawingCtx.stroke();

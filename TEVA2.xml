@@ -46,7 +46,7 @@ button {
 <script type="text/javascript" src="plotting.js" ></script>   
 <script type="text/javascript" src="fft.js/lib/complex.js" ></script>   
 <script type="text/javascript" src="fft.js/lib/real.js" ></script>   
-<script type="text/javascript" src="https://cdn.webrtc-experiment.com/RecordRTC.js" defer="true" ></script>
+<script type="text/javascript" src="RecordRTC.min.js" defer="true" ></script>
 </head>
 <body  onunload="store_TEVA_settings (); " >
 	<div style="color: gray; position: fixed; top: 5%; left: 2%; font-size: 15vmin; text-align: center; " id="RecordingLight">&#9679;</div>

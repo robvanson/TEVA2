@@ -1,16 +1,16 @@
 CACHE MANIFEST
 # Version 1
+# Random text (change to force cache reload):
+# da39a3ee5e6b4b0d3255bfef95601890afd80709
 
 CACHE:
 Background.png
 TEVA.png
-TEVA2.appcache
 TEVA2.xml
 #TEVA2_Settings.xml
 audioProcessing.js
 internationalization_tables.js
 manifest.json
-mespeak/mespeak.full.js
 fft.js/lib/real.js
 fft.js/lib/complex.js
 plotting.js

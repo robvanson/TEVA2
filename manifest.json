@@ -1,0 +1,13 @@
+{
+  "short_name": "TEVA 2",
+  "name": "TEVA 2",
+  "icons": [
+    {
+      "src": "TEVA.png",
+      "type": "image/png"
+    },
+  ],
+  "start_url": "TEVA2.xml",
+    "display": "standalone",
+  "orientation": "landscape"
+}

@@ -7,7 +7,7 @@ CACHE:
 Background.png
 TEVA.png
 TEVA2.xml
-#TEVA2_Settings.xml
+TEVA2_Settings.xml
 audioProcessing.js
 internationalization_tables.js
 manifest.json

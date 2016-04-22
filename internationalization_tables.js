@@ -1,16 +1,108 @@
 var userLanguage = (navigator.language) ? navigator.language : navigator.userLanguage;
 userLanguage = userLanguage.substr(0,2).toUpperCase();
 
+
+function insert_and_update_options (labels) {
+	for(x in labels) {
+		if(document.getElementById(x) && ! x.match(/_/)) {
+			document.getElementById(x).title = labels[x][1];
+			var defaultText = document.getElementById(x+"Caption");
+			if (defaultText) defaultText.textContent = labels[x][0];
+			var defaultText2 = document.getElementById(x+"Caption2");
+			if (defaultText2) defaultText2.textContent = labels[x][0];
+		} else if (x.match(/_/)) {
+			var Id = x.replace(/_[^_]*$/, "");
+			var value = x.replace(/^[^_]*_/, "");
+			if (document.getElementById(x)) {
+				document.getElementById(x).value = value;
+				document.getElementById(x).text = labels[x][0];
+			} else {
+				if(document.getElementById(Id)) {
+					var selector = document.getElementById(Id);
+					var newOption = selector.options[0].cloneNode(true);
+					newOption.value = value;
+					newOption.text = labels[x][0];
+					newOption.id = x;
+					selector.add(newOption);
+				};
+			};
+		};
+	};
+};
+
 function set_mainpageLanguage (language) {
-	var labels = internationalization_tables[language];
+	var labels = mainpage_tables[language];
 	for(x in labels) {
 		if(document.getElementById(x)) {
 			document.getElementById(x).textContent = labels[x][0];
 			document.getElementById(x).parentNode.parentNode.title = labels[x][1];
 		};
 	};
+	
+	labels = selector_tables[language];
+	insert_and_update_options (labels);
+	
+	labels = language_table;
+	insert_and_update_options (labels);
+	
+	// Set selector index
+	if (document.getElementById("Language")) {
+		for(var x = 0; x < document.getElementById("Language").options.length; ++ x) {
+			if (document.getElementById("Language").options[x].value == language) {
+				document.getElementById("Language").selectedIndex = x;
+			};
+		};
+	};
+	
+	localStorage.language = language;
 };
-var internationalization_tables = {
+
+function set_configLanguage (language) {
+	var labels = config_tables[language];
+	for(x in labels) {
+		if(document.getElementById(x)) {
+			document.getElementById(x).textContent = labels[x][0];
+			document.getElementById(x).parentNode.parentNode.title = labels[x][1];
+		};
+	};
+	
+	labels = selector_tables[language];
+	insert_and_update_options (labels);
+	
+	labels = language_table;
+	insert_and_update_options (labels);
+	
+	// Set selector index
+	for(var x = 0; x < document.getElementById("Language").options.length; ++ x) {
+		if (document.getElementById("Language").options[x].value == language) {
+			document.getElementById("Language").selectedIndex = x;
+		};
+	};
+	
+	localStorage.language = language;
+};
+
+function change_mainpageLanguage () {
+	var index = document.getElementById("Language").selectedIndex;
+	var value = document.getElementById("Language").options[index].value;
+	userLanguage = value;
+	set_mainpageLanguage (userLanguage);
+	return userLanguage;
+};
+
+function change_configLanguage () {
+	var index = document.getElementById("Language").selectedIndex;
+	if (index > 0) {
+		var value = document.getElementById("Language").options[index].value;
+		userLanguage = value;
+		set_configLanguage (userLanguage);
+	} else {
+		set_configLanguage (userLanguage)
+	};
+	return userLanguage;
+};
+
+var mainpage_tables = {
 	EN: {
 		File: ["Open", "Open sound file"],
 		Record: ["Record", "Record your speech. You have 4 seconds, watch the recording 'light'"],
@@ -105,6 +197,50 @@ var internationalization_tables = {
 	}
 };
 
-if(!internationalization_tables[userLanguage]) {
+var config_tables = {
+	EN: {
+		RecordingTimePost: ["(sec)", "Time of recording in seconds"],
+		},
+			
+	JA: {
+		RecordingTimePost: ["（秒）", "録音時間の秒数"],
+		},
+		
+	DE: {
+		RecordingTimePost: ["(sec)", "Aufnahmezeit in Secunden"],
+		},		
+	NL: {
+		RecordingTimePost: ["(sec)", "Opnametijd in seconden"],
+		}
+};
+
+
+var selector_tables = {
+	EN: {
+		Language: ["Language", "Select a language"],
+		RecordingTime: ["Recording", "Time of recording in seconds"],
+		},
+	JA: {
+		Language: ["言語", "表示言語を設定します。"],
+		RecordingTime: ["録音", "録音時間の秒数"],
+		},
+	DE: {
+		Language: ["Sprache", "Wähle die gewünschte Sprache"],
+		RecordingTime: ["Aufnahme", "Aufnahmezeit in Secunden"],
+		},
+	NL: {
+		Language: ["Taal", "Selecteer de gewenste taal"],
+		RecordingTime: ["Opname", "Opnametijd in seconden"],
+		},
+}
+
+var language_table = {
+	Language_EN: ["English", "English language version"],
+	Language_JA: ["日本語", "日本語版"],
+	Language_DE: ["Deutsch", "Deutsche Version"],	
+	Language_NL: ["Nederlands", "Gebruik Nederlands"]	
+}
+
+if(!mainpage_tables[userLanguage]) {
 	userLanguage = undefined;
 };

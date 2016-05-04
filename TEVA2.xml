@@ -183,33 +183,31 @@ button {
 	    record.disabled = false;
 	    record.style.color = "red";
 		
-		var mediaRecorder = new MediaRecorder(mediaStream);
-		mediaRecorder.ondataavailable = function(e) {
-		  console.log("data available");
-		
-		  var audioURL = window.URL.createObjectURL(e.data);
-		
-				recordingLight.style.color = "gray";
-				recordedBlobURL = audioURL;
-				recordedBlob = e.data;
-				// Do things with Blob!!!
-				processAudio (recordedBlob);
-		}		
-			// Play recorded sound
+		var recordRTC = RecordRTC(mediaStream, {
+			recorderType: StereoAudioRecorder // optionally force WebAudio API to record audio
+			
+		}); 
+		recordRTC.mimeType = {audio: 'audio/wav'};
+
+		// Play recorded sound
 		play.onclick = function() {
 			play_soundArray (currentAudioWindow, recordedSampleRate);
 		};
 		
 		// Stop
 		stopRecording = function() {
-console.log("Stop");
-			mediaRecorder.requestData()
-			mediaRecorder.stop();
+			recordRTC.stopRecording(function(audioURL) { 
+				recordingLight.style.color = "gray";
+				recordedBlobURL = audioURL;
+				recordedBlob = recordRTC.getBlob();
+				// Do things with Blob!!!
+				processAudio (recordedBlob);
+			});
 		    play.disabled = false;
 		    record.disabled = false;
 		    record.style.color = "red";
 		    play.style.color = "red";
-			recordingLight.style.color = "gray";
+		    recordingLight.style.color = "gray";
 		}
 		
 		// onClick Start
@@ -223,16 +221,20 @@ console.log("Stop");
 			recordingLight.style.fontSize = "15vmin";
 		    recordingLight.style.color = "red";
 		    
-		    mediaRecorder.start();
-		    //recordRTC.initRecorder();
-			//recordRTC.startRecording();
+		    recordRTC.initRecorder();
+			recordRTC.startRecording();
 		    // Set Timeout for stop
 		    setTimeout(stopRecording, teva_settings.recSecs * 1000)
 		}
 	
 	};
 
-	navigator.mediaDevices.getUserMedia(mediaConstraints).then(successCallback).catch(errorCallback);
+	if (navigator.mediaDevices.getUserMedia) {
+		navigator.mediaDevices.getUserMedia(mediaConstraints).then(successCallback).catch(errorCallback);
+	} else {
+		navigator.webkitGetUserMedia(mediaConstraints, successCallback, errorCallback);
+	};
+
 
 	//]]>	
 

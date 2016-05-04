@@ -75,7 +75,6 @@ function play_soundArray (soundArray, sampleRate) {
 	// connect the AudioBufferSourceNode to the
 	// destination so we can hear the sound
 	source.connect(audioContext.destination);
-console.log(audioContext.destination);
 	// start the source playing
 	source.start();
 };

@@ -17,6 +17,7 @@ body {
 	background-color: rgb(250,250,250);
     background-repeat: no-repeat;
     background-position: center center;
+    background-size: 50%;
     background-attachment: fixed;}
 h1 {
 	text-align: center;

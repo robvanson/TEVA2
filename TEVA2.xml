@@ -28,7 +28,7 @@ button {
 		height:15%;
 		cursor:pointer; /*forces the cursor to change to a hand when the button is hovered*/
 		text-align:center;
-		font: bold 4vmin "Helvetica";
+		font: bold 3.5vmin "Helvetica";
 		background-color: rgb(220,220,220);
 		
 		-webkit-box-shadow: inset 0px 1px 0px #3e9cbf, 0px 5px 0px 0px #205c73, 0px 10px 5px #999;

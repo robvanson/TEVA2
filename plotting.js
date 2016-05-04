@@ -97,6 +97,7 @@ function drawSignal (display) {
 		} else if (display == "Pitch") {
 			draw_pitch (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);		
 		} else if (display == "Spectrogram") {
+			draw_spectrogram (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);
 		} else if (display == "Ltas") {
 			draw_ltas (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);		
 		} else if (display == "Intensity") {
@@ -160,6 +161,66 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 		drawingCtx.lineTo(horMargin + currentTime , plotHeight / 2 - currentValue * vScale);
 	};
 	drawingCtx.stroke();
+};
+
+// Keep analysis
+var spectrogram = 0; 
+function draw_spectrogram (canvasId, color, typedArray, sampleRate, duration) {
+	var drawingCtx = setDrawingParam(canvasId);
+	var plotWidth = 0.95 * drawingCtx.canvas.width;
+	var horMargin = 0.02 * drawingCtx.canvas.width;
+	var plotHeight = 0.9 * drawingCtx.canvas.height
+	var verMargin = 0.02 * drawingCtx.canvas.height
+	
+	var fMin = 60;
+	var fMax = 600;
+	var verMin = 0;
+	var verMax = teva_settings.frequency * 1000; 
+	var dT = 0.01;
+	var horMin = 0;
+	var horMax = duration;
+	var maxPower = 90;
+	
+	// Set scales
+	var numFrames = duration / dT;
+
+	// if (! spectrogram) spectrogram = calculate_spectrogram (typedArray, sampleRate, fMin, fMax, dT);
+	spectrogram = calculate_spectrogram (typedArray, sampleRate, fMin, fMax, dT);
+
+	// Set parameters
+	resetDrawingParam(drawingCtx);
+	drawingCtx.beginPath();
+	drawingCtx.strokeStyle = color;
+	
+	// Draw axes
+	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
+
+	// Reset drawing
+	drawingCtx.beginPath();
+	drawingCtx.lineWidth = 0.5;
+	
+	// Scale to plot area
+	var vScale = plotHeight / verMax;
+	var resetLine = 0;
+	
+	// Frequency step per sample
+	maxFindex = (2 * verMax / sampleRate) * spectrogram[0]["spectrum"].length;
+	dVer = plotHeight / maxFindex;
+	dHor = plotWidth / numFrames;
+	for (var i = 0; i < spectrogram.length; ++i) {
+		var t = spectrogram[i].t;
+		var spectrum = spectrogram[i].spectrum;
+		var x = (t / duration) * plotWidth;
+		for (var y = 0; y < maxFindex; ++y) {
+			var p = (spectrum[y] > 0) ? 10 * Math.log10(spectrum[y]) : 0;
+			var grayLevel = 255;
+			grayLevel -= (p < 0) ? 0 : 255*(p - 0)/(50-00);
+			grayLevel = Math.round(grayLevel);
+			drawingCtx.fillStyle = "rgb("+grayLevel+", "+grayLevel+", "+grayLevel+")";
+			drawingCtx.fillRect(Math.floor(horMargin + x), Math.ceil(plotHeight - (y-1)*dVer), Math.ceil(dHor), Math.ceil(dVer));
+		};
+	};
+	drawingCtx.fillStyle = "rgb(0, 0, 0)";
 };
 
 // Keep analysis
@@ -418,6 +479,7 @@ function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax
 function initializeExistingAnalysis () {
 	pitch = 0;
 	intensity = 0;
+	spectrogram = 0;
 };
 
 // Handle sound after decoding (used in audioProcessing.js)
@@ -425,3 +487,60 @@ function processRecordedSound () {
 	display_recording_level ("RecordingLight", recordedArray);
 	drawSignal (teva_settings.display)
 };
+
+function calculate_spectrogram (sound, sampleRate, fMin, fMax, dT) {
+	var duration = sound.length / sampleRate;
+	var spectrumArray = [];
+	var lagMin = (fMax > 0) ? 1/fMax : 1/600;
+	var lagMax = (fMin > 0) ? 1/fMin : 1/60;
+	var thressHold = 0.01;
+	
+	// Set up window and calculate Autocorrelation of window
+	var windowDuration = lagMax * 6;
+	var window = setupGaussWindow (sampleRate, fMin);
+	var windowRMS = getWindowRMS (window);
+
+	// Step through the sound
+	for (var t = 0; t < duration; t += dT) {
+		var currentSpectrum = calculateSingleSpectrum (sound, sampleRate, t, window);
+		spectrumArray.push({t: t, spectrum: currentSpectrum});
+	};
+	return spectrumArray;
+};
+
+function calculateSingleSpectrum (sound, sampleRate, time, window) {
+	// Calculate FFT
+	// This is stil just the power in dB.
+	var soundLength = sound.length;
+	var windowLength = (window) ? window.length : soundLength;
+	var FFT_N = Math.pow(2, Math.ceil(Math.log2(windowLength))) * 2;
+	var input = new Float32Array(FFT_N * 2);
+	var output = new Float32Array(FFT_N * 2);
+	// The window can get outside of the sound itself
+	var offset = Math.floor(time * sampleRate - Math.ceil(windowLength/2));
+	if (window) {
+		for (var i = 0; i < FFT_N; ++i) {
+			input [2*i] = (i < windowLength && (offset + i) > 0 && (offset + i) < soundLength) ? sound [offset + i] * window [i] : 0;
+			input [2*i + 1] = 0;
+		};
+	} else {
+		for (var i = 0; i < FFT_N; ++i) {
+			input [2*i] = (i < windowLength && (offset + i) > 0 && (offset + i) < soundLength) ? sound [offset + i] : 0;
+			input [2*i + 1] = 0;
+		};
+	};
+	var fft = new FFT.complex(FFT_N, false);
+	var ifft = new FFT.complex(FFT_N, true);
+	fft.simple(output, input, 1)
+
+	// Calculate H * H(cj)
+	// Scale per frequency
+	var powerSpectrum = new Float32Array(FFT_N);
+	for(var i = 0; i < FFT_N; ++ i) {
+		var squareValue = (output[2*i]*output[2*i] + output[2*i+1]*output[2*i+1]);
+		powerSpectrum [i] = squareValue;
+	};
+	
+	return powerSpectrum;
+};
+

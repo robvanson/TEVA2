@@ -183,28 +183,28 @@ button {
 	    record.disabled = false;
 	    record.style.color = "red";
 		
-		var recordRTC = RecordRTC(mediaStream, {
-			recorderType: StereoAudioRecorder // optionally force WebAudio API to record audio
-		}); 
+		var mediaRecorder = new MediaRecorder(mediaStream);
+		mediaRecorder.ondataavailable = function(e) {
+		  console.log("data available");
 		
+		  var audioURL = window.URL.createObjectURL(e.data);
 		
-		
-		// Play recorded sound
+				recordingLight.style.color = "gray";
+				recordedBlobURL = audioURL;
+				recordedBlob = e.data;
+				// Do things with Blob!!!
+				processAudio (recordedBlob);
+		}		
+			// Play recorded sound
 		play.onclick = function() {
 			play_soundArray (currentAudioWindow, recordedSampleRate);
 		};
 		
 		// Stop
 		stopRecording = function() {
-			recordRTC.stopRecording(function(audioURL) { 
-				recordingLight.style.color = "gray";
-				recordedBlobURL = audioURL;
-				recordedBlob = recordRTC.getBlob();
-				// Initialize existing recordings
-				initializeExistingAnalysis ();
-				// Do things with Blob!!!
-				processAudio (recordedBlob);
-			});
+console.log("Stop");
+			mediaRecorder.requestData()
+			mediaRecorder.stop();
 		    play.disabled = false;
 		    record.disabled = false;
 		    record.style.color = "red";
@@ -223,8 +223,9 @@ button {
 			recordingLight.style.fontSize = "15vmin";
 		    recordingLight.style.color = "red";
 		    
-		    recordRTC.initRecorder();
-			recordRTC.startRecording();
+		    mediaRecorder.start();
+		    //recordRTC.initRecorder();
+			//recordRTC.startRecording();
 		    // Set Timeout for stop
 		    setTimeout(stopRecording, teva_settings.recSecs * 1000)
 		}

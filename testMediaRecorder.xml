@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="xhtml-default.css" type="text/css" media="screen, aural, print" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN"
+    "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" >
+<head >
+<title lang="en" xml:lang="en" dir="ltr">TEVA 2</title>
+<style>
+body {
+	background-image: url("Background.png");
+	background-color: rgb(250,250,250);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 50%;
+    background-attachment: fixed;}
+h1 {
+	text-align: center;
+	}
+button {
+		position: fixed;
+		overflow: hidden;
+		text-overflow: clip clip;
+		width:17%;
+		height:15%;
+		cursor:pointer; /*forces the cursor to change to a hand when the button is hovered*/
+		text-align:center;
+		font: bold 4.5vmin "Helvetica";
+		background-color: rgb(220,220,220);
+		
+		-webkit-box-shadow: inset 0px 1px 0px #3e9cbf, 0px 5px 0px 0px #205c73, 0px 10px 5px #999;
+		-moz-box-shadow: inset 0px 1px 0px #3e9cbf, 0px 5px 0px 0px #205c73, 0px 10px 5px #999;
+		box-shadow: inset 0px 1px 0px #3e9cbf, 0px 5px 0px 0px #205c73, 0px 10px 5px #999;
+		
+		/*give the corners a small curve*/
+		-moz-border-radius: 7px;
+		-webkit-border-radius: 7px;
+		border-radius: 7px;
+		}
+	
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<script type="text/javascript" src="RecordRTC.min.js" defer="true" ></script>
+<script type="text/javascript" src="audioProcessing.js" ></script>   
+</head>
+<body >
+	<div style="color: gray; position: fixed; top: 5%; left: 2%; font-size: 15vmin; text-align: center; " id="RecordingLight">&#9679;</div>
+	<button type="button" style="color: gray; bottom: 2%; left: 32%" id="RecordButton" disabled="true" ><span style="font-size: 100%; ">&#9679;<br /><span id="Record">Record</span></span></button>
+	<button type="button" style="color: gray; bottom: 2%; left: 51%" id="PlayButton" disabled="true" ><span style="font-size: 100%">&#9658;<br /><span id="Play">Play</span></span></button>
+
+    <script type="text/javascript">
+	//<![CDATA[
+	
+	// Set DOM parameters
+	var recSecs = 4;
+	var audioContext = new AudioContext();
+	var recordedSource = audioContext.createBufferSource(); // creates a sound source
+  
+	var recordingLight = document.getElementById('RecordingLight');
+	var record = document.getElementById('RecordButton');
+	var play = document.getElementById('PlayButton');
+	var stopRecording, playSound;
+	// Other parameters
+	var mediaStream;
+	var mediaConstraints = { audio: true, video: false };
+	var errorCallback = function(err){console.log("Error: " + err.name);};
+
+	// Handle sound after decoding (used in audioProcessing.js)
+	function processRecordedSound () {
+	};
+
+	////
+	var successCallback = function(mediaStream){
+		
+		if(!mediaStream){ 
+			console.log("No media stream: " + mediaStream);
+		}
+		
+	    record.disabled = false;
+	    record.style.color = "red";
+		
+		var recordRTC = RecordRTC(mediaStream, {
+			recorderType: StereoAudioRecorder // optionally force WebAudio API to record audio
+		}); 
+		
+		
+		
+		// Play recorded sound
+		play.onclick = function() {
+			play_soundArray (currentAudioWindow, recordedSampleRate);
+		};
+		
+		// Stop
+		stopRecording = function() {
+			recordRTC.stopRecording(function(audioURL) { 
+				recordingLight.style.color = "gray";
+				recordedBlobURL = audioURL;
+				recordedBlob = recordRTC.getBlob();
+				// Do things with Blob!!!
+				processAudio (recordedBlob);
+			});
+		    play.disabled = false;
+		    record.disabled = false;
+		    record.style.color = "red";
+		    play.style.color = "red";
+			recordingLight.style.color = "gray";
+		}
+		
+		// onClick Start
+		record.onclick = function() {
+		    play.disabled = true;
+		    record.disabled = true;
+		    record.style.color = "gray";
+		    play.style.color = "gray";
+			recordingLight.style.top = "5%";
+			recordingLight.style.left = "2%";
+			recordingLight.style.fontSize = "15vmin";
+		    recordingLight.style.color = "red";
+		    
+		    recordRTC.initRecorder();
+			recordRTC.startRecording();
+		    // Set Timeout for stop
+		    setTimeout(stopRecording, recSecs * 1000)
+		}
+	
+	};
+	
+	navigator.mediaDevices.getUserMedia(mediaConstraints).then(successCallback).catch(errorCallback);
+	//]]>	
+
+	</script>
+</body>
+</html>

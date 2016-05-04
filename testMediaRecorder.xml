@@ -90,7 +90,6 @@ button {
 		
 		// Stop
 		stopRecording = function() {
-			//mediaRecorder.requestData();
 			mediaRecorder.stop(); 
 			recordingLight.style.color = "gray";
 

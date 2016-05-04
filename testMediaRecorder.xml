@@ -39,7 +39,6 @@ button {
 	
 </style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<script type="text/javascript" src="RecordRTC.min.js" defer="true" ></script>
 <script type="text/javascript" src="audioProcessing.js" ></script>   
 </head>
 <body >
@@ -77,27 +76,24 @@ button {
 		
 	    record.disabled = false;
 	    record.style.color = "red";
-		
-		var recordRTC = RecordRTC(mediaStream, {
-			recorderType: StereoAudioRecorder // optionally force WebAudio API to record audio
-		}); 
-		
-		
-		
-		// Play recorded sound
+
+		var mediaRecorder = new MediaRecorder(mediaStream);			
+		mediaRecorder.ondataavailable = function(e) {
+  			recordedBlob = e.data;
+			processAudio (recordedBlob);
+		};
+			
+			// Play recorded sound
 		play.onclick = function() {
 			play_soundArray (currentAudioWindow, recordedSampleRate);
 		};
 		
 		// Stop
 		stopRecording = function() {
-			recordRTC.stopRecording(function(audioURL) { 
-				recordingLight.style.color = "gray";
-				recordedBlobURL = audioURL;
-				recordedBlob = recordRTC.getBlob();
-				// Do things with Blob!!!
-				processAudio (recordedBlob);
-			});
+			//mediaRecorder.requestData();
+			mediaRecorder.stop(); 
+			recordingLight.style.color = "gray";
+
 		    play.disabled = false;
 		    record.disabled = false;
 		    record.style.color = "red";
@@ -116,8 +112,7 @@ button {
 			recordingLight.style.fontSize = "15vmin";
 		    recordingLight.style.color = "red";
 		    
-		    recordRTC.initRecorder();
-			recordRTC.startRecording();
+		    mediaRecorder.start();
 		    // Set Timeout for stop
 		    setTimeout(stopRecording, recSecs * 1000)
 		}

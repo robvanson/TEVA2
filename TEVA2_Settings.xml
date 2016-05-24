@@ -4,9 +4,9 @@
     "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" manifest="TEVA2.appcache" >
 <head>
-<link rel="shortcut icon" href="sgc.png" />
+<link rel="shortcut icon" href="TEVA.png" />
 <link rel="manifest" href="manifest.json" />
-<link rel="icon" sizes="192x192" href="sgc.png" />
+<link rel="icon" sizes="192x192" href="TEVA.png" />
 <meta name="viewport" content="width=device-width" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta http-equiv="Content-Language" content="en" />
@@ -79,7 +79,14 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		<option value="---" ><span id="LanguageCaption2" title="" >---</span></option>
 	</select> 
 
-	<div style="background-color: rgb(220,220,220); position: fixed; color: black; bottom: 54%; left: 45%; height: 8%; width: 17%; font-size: 3vmin; text-align: center; " id="LocalRecordingTime" title="">
+	<div style="background-color: rgb(220,220,220); position: fixed; color: black; bottom: 65%; left: 25%; height: 8%; width: 17%; font-size: 3vmin; text-align: center; " id="LocalFrequency" title="">
+		<span id="FrequencyCaption" style="vertical-align: middle; " >---</span><br />
+		<select id="Frequency"  style="font-size: 2vmin; vertical-align: middle; background-color: rgb(220,220,220);" onchange="teva_settings.frequency = getFrequency(); store_TEVA_settings (); ">
+		<option value="---" ><span id="FrequencyCaption2" title="" >---</span></option>
+		</select>
+	</div>
+	
+	<div style="background-color: rgb(220,220,220); position: fixed; color: black; bottom: 65%; left: 45%; height: 8%; width: 17%; font-size: 3vmin; text-align: center; " id="LocalRecordingTime" title="">
 		<span id="RecordingTimeCaption" style="vertical-align: middle; " >---</span><br />
 		<select id="RecordingTime"  style="font-size: 2vmin; vertical-align: middle; background-color: rgb(220,220,220);" onchange="teva_settings.recSecs = getRecordingTime(); store_TEVA_settings (); ">
 			<option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="20">20</option>
@@ -92,20 +99,16 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 	var mainWindow = localStorage.mainWindow;
 	
 	var localRecordingTime = document.getElementById('RecordingTime');
+	var localFrequency = document.getElementById('Frequency');
 
 	
 	// Global settings
 	var teva_settings = {
 		settingsRead: "false",
-		recSecs: 3,
-		ttsSpeed: 110,
-		ttsVariant: "f3",
-		shuffleLists: true,
-		register: 249, // Must match Register_249 Id
-		wordList: "20 basic tone combinations",
+		recSecs: 4,
 		language: "",
-		synthesis_eSpeak: false,
-		strict: 1
+		display: "Sound",
+		frequency: 2
 	};
 	
 	// Store settings
@@ -123,8 +126,10 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		
 		set_configLanguage (teva_settings.language);
 		setRecordingTime (teva_settings.recSecs);
+		setFrequency (teva_settings.frequency);
 
 		localRecordingTime.value = teva_settings.recSecs;
+		localFrequency.value = teva_settings.frequency+"kHz";
 		teva_settings.settingsRead = "true";
 	};
 	
@@ -149,6 +154,23 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		for(var x = 0; x < document.getElementById("RecordingTime").options.length; ++ x) {
 			if (document.getElementById("RecordingTime").options[x].value == value) {
 				document.getElementById("RecordingTime").selectedIndex = x;
+			};
+		};
+	};
+	
+	// Frequency
+	function getFrequency () {
+		var index = document.getElementById("Frequency").selectedIndex;
+		var value = document.getElementById("Frequency").options[index].value;
+		if (index <= 0) value = "2";
+		value = value.replace("[^0-9]", "");
+		return value;
+	}
+	
+	function setFrequency (value) {
+		for(var x = 0; x < document.getElementById("Frequency").options.length; ++ x) {
+			if (document.getElementById("Frequency").options[x].value == value+"kHz") {
+				document.getElementById("Frequency").selectedIndex = x;
 			};
 		};
 	};

@@ -131,6 +131,7 @@ button {
 	
 	// Global settings
 	var teva_settings = {
+		settingsRead: "false",
 		recSecs: 4,
 		language: "",
 		display: "Sound",

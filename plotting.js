@@ -216,18 +216,13 @@ function draw_spectrogram (canvasId, color, typedArray, sampleRate, duration) {
 	};
 	pmax = pmax > 0 ? pmax : 60;
 	var dynamicRange = 60;
-	for (var i = 0; i < (2*spectrogram.length - 1); ++i) {
-		var j = Math.floor(i/2);
-		var t = spectrogram[j].t;
-		var k = Math.ceil(i/2);
-		var spectrum = spectrogram[j].spectrum;
-		var spectrumNext = spectrogram[k].spectrum;
+	for (var i = 0; i < spectrogram.length; ++i) {
+		var t = spectrogram[i].t;
+		var spectrum = spectrogram[i].spectrum;
 		var x = (t / duration) * plotWidth;
 		for (var y = 0; y < maxFindex; ++y) {
-			var p = (spectrum[y] > 0) ? 10 * Math.log10(spectrum[y]) : 0;
-			var q = p;
-			if (j != k) q = (spectrumNext[y] > 0) ? 10 * Math.log10(spectrumNext[y]) : 0;
-			p = (p+q)/2
+			var power = spectrum[y];
+			var p = (power) ? 10 * Math.log10(power) : 0;
 			var grayLevel = 255;
 			grayLevel = 255*(pmax - p)/dynamicRange;
 			grayLevel = (grayLevel < 254) ? Math.round(grayLevel) : 254;

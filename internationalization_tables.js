@@ -80,12 +80,11 @@ function set_configLanguage (language) {
 	};
 	
 	localStorage.language = language;
-};
+		};
 
 function change_mainpageLanguage () {
 	var index = document.getElementById("Language").selectedIndex;
 	var value = document.getElementById("Language").options[index].value;
-	userLanguage = value;
 	set_mainpageLanguage (userLanguage);
 	return userLanguage;
 };
@@ -219,18 +218,46 @@ var selector_tables = {
 	EN: {
 		Language: ["Language", "Select a language"],
 		RecordingTime: ["Recording", "Time of recording in seconds"],
+		Frequency: ["Frequency", "Highest frequency shown"],
+		Frequency_10k: ["10kHz", "Display up to 10 kHz"],
+		Frequency_8k: ["8kHz", "Display up to 8 kHz"],
+		Frequency_5k: ["5kHz", "Display up to 5 kHz"],
+		Frequency_3k: ["3kHz", "Display up to 3 kHz"],
+		Frequency_2k: ["2kHz", "Display up to 2 kHz"],
+		Frequency_1k: ["1kHz", "Display up to 1 kHz"],
 		},
 	JA: {
 		Language: ["言語", "表示言語を設定します。"],
 		RecordingTime: ["録音", "録音時間の秒数"],
+		Frequency: ["周波数", "最大周波数を表示する"],
+		Frequency_10k: ["10kHz", "10 kHzまでを表示する"],
+		Frequency_8k: ["8kHz", "8 kHzまでを表示する"],
+		Frequency_5k: ["5kHz", "5 kHzまでを表示する"],
+		Frequency_3k: ["3kHz", "3 kHzまでを表示する"],
+		Frequency_2k: ["2kHz", "2 kHzまでを表示する"],
+		Frequency_1k: ["1kHz", "1 kHzまでを表示する"],
 		},
 	DE: {
 		Language: ["Sprache", "Wähle die gewünschte Sprache"],
 		RecordingTime: ["Aufnahme", "Aufnahmezeit in Secunden"],
+		Frequency: ["Frequenz", "Höchstfrequenz im Spektrogramm"],
+		Frequency_10k: ["10kHz", "Wiedergabe bis 10 kHz"],
+		Frequency_8k: ["8kHz", "Wiedergabe bis 8 kHz"],
+		Frequency_5k: ["5kHz", "Wiedergabe bis 5 kHz"],
+		Frequency_3k: ["3kHz", "Wiedergabe bis 3 kHz"],
+		Frequency_2k: ["2kHz", "Wiedergabe bis 2 kHz"],
+		Frequency_1k: ["1kHz", "Wiedergabe bis 1 kHz"],
 		},
 	NL: {
 		Language: ["Taal", "Selecteer de gewenste taal"],
 		RecordingTime: ["Opname", "Opnametijd in seconden"],
+		Frequency: ["Frequentie", "Hoogste frequentie"],
+		Frequency_10k: ["10kHz", "Ga tot 10 kHz"],
+		Frequency_8k: ["8kHz", "Ga tot 8 kHz"],
+		Frequency_5k: ["5kHz", "Ga tot 5 kHz"],
+		Frequency_3k: ["3kHz", "Ga tot 3 kHz"],
+		Frequency_2k: ["2kHz", "Ga tot 2 kHz"],
+		Frequency_1k: ["1kHz", "Ga tot 1 kHz"],
 		},
 }
 

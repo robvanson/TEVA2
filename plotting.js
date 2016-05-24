@@ -144,9 +144,6 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 	
 	var numFrames = typedArray.length;
 	
-	// Draw axes
-	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
-
 	// Reset drawing
 	drawingCtx.beginPath();
 	drawingCtx.lineWidth = 0.5;
@@ -161,6 +158,9 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 		drawingCtx.lineTo(horMargin + currentTime , plotHeight / 2 - currentValue * vScale);
 	};
 	drawingCtx.stroke();
+	
+	// Draw axes
+	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
 };
 
 // Keep analysis
@@ -184,16 +184,13 @@ function draw_spectrogram (canvasId, color, typedArray, sampleRate, duration) {
 	// Set scales
 	var numFrames = duration / dT;
 
-	// if (! spectrogram) spectrogram = calculate_spectrogram (typedArray, sampleRate, fMin, fMax, dT);
-	spectrogram = calculate_spectrogram (typedArray, sampleRate, fMin, fMax, dT);
+	if (! spectrogram) spectrogram = calculate_spectrogram (typedArray, sampleRate, fMin, fMax, dT);
+	// spectrogram = calculate_spectrogram (typedArray, sampleRate, fMin, fMax, dT);
 
 	// Set parameters
 	resetDrawingParam(drawingCtx);
 	drawingCtx.beginPath();
 	drawingCtx.strokeStyle = color;
-	
-	// Draw axes
-	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
 
 	// Reset drawing
 	drawingCtx.beginPath();
@@ -207,20 +204,44 @@ function draw_spectrogram (canvasId, color, typedArray, sampleRate, duration) {
 	maxFindex = (2 * verMax / sampleRate) * spectrogram[0]["spectrum"].length;
 	dVer = plotHeight / maxFindex;
 	dHor = plotWidth / numFrames;
+	// Determine maximum
+	var pmax = 0;
 	for (var i = 0; i < spectrogram.length; ++i) {
 		var t = spectrogram[i].t;
 		var spectrum = spectrogram[i].spectrum;
+		for (var j = 0; j < spectrum.length; ++j) {
+			var p = (spectrum[j] > 0) ? 10 * Math.log10(spectrum[j]) : 0;
+			if (p > pmax) pmax = p;
+		};
+	};
+	pmax = pmax > 0 ? pmax : 60;
+	var dynamicRange = 60;
+	for (var i = 0; i < (2*spectrogram.length - 1); ++i) {
+		var j = Math.floor(i/2);
+		var t = spectrogram[j].t;
+		var k = Math.ceil(i/2);
+		var spectrum = spectrogram[j].spectrum;
+		var spectrumNext = spectrogram[k].spectrum;
 		var x = (t / duration) * plotWidth;
 		for (var y = 0; y < maxFindex; ++y) {
 			var p = (spectrum[y] > 0) ? 10 * Math.log10(spectrum[y]) : 0;
+			var q = p;
+			if (j != k) q = (spectrumNext[y] > 0) ? 10 * Math.log10(spectrumNext[y]) : 0;
+			p = (p+q)/2
 			var grayLevel = 255;
-			grayLevel -= (p < 0) ? 0 : 255*(p - 0)/(50-00);
-			grayLevel = Math.round(grayLevel);
+			grayLevel = 255*(pmax - p)/dynamicRange;
+			grayLevel = (grayLevel < 254) ? Math.round(grayLevel) : 254;
 			drawingCtx.fillStyle = "rgb("+grayLevel+", "+grayLevel+", "+grayLevel+")";
 			drawingCtx.fillRect(Math.floor(horMargin + x), Math.ceil(plotHeight - (y-1)*dVer), Math.ceil(dHor), Math.ceil(dVer));
+			drawingCtx.stroke();
 		};
 	};
-	drawingCtx.fillStyle = "rgb(0, 0, 0)";
+	drawingCtx.fillStyle = "black";
+	drawingCtx.stroke();
+	
+	// Draw axes
+	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
+
 };
 
 // Keep analysis
@@ -343,6 +364,7 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.stroke();
 };
 
+var powerSpectrum = 0;
 function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
@@ -356,30 +378,32 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var horMax = fMax;
 	var maxPower = 90;
 	
-	// Calculate FFT
-	// This is stil just the power in dB.
-	var inputLength = typedArray.length;
-	var FFT_N = Math.pow(2, Math.ceil(Math.log2(inputLength))) * 2;
-	var input = new Float32Array(FFT_N * 2);
-	var output = new Float32Array(FFT_N * 2);
-	for (var i = 0; i < FFT_N; ++i) {
-		input [2*i] = (i < inputLength) ? typedArray [i] : 0;
-		input [2*i + 1] = 0; 
-	};
-	var fft = new FFT.complex(FFT_N, false);
-	var ifft = new FFT.complex(FFT_N, true);
-		
-	fft.simple(output, input, 1)
-	// ifft.simple(input, output, 1)
-
-	// Calculate the power spectrum
-	var powerSpectrum = new Float32Array(FFT_N);
-	// Scale per frequency
-	var scalingPerHz = Math.log10(typedArray.length/sampleRate) * 10;
-	var powerScaling = Math.log10(FFT_N) * -20 + scalingPerHz;
-	for(var i = 0; i < FFT_N; ++ i) {
-		var powerValue = (output[2*i]*output[2*i] + output[2*i+1]*output[2*i+1]);
-		powerSpectrum[i] = Math.log10(powerValue) * 10;
+	if (! powerSpectrum) {
+		// Calculate FFT
+		// This is stil just the power in dB.
+		var inputLength = typedArray.length;
+		var FFT_N = Math.pow(2, Math.ceil(Math.log2(inputLength))) * 2;
+		var input = new Float32Array(FFT_N * 2);
+		var output = new Float32Array(FFT_N * 2);
+		for (var i = 0; i < FFT_N; ++i) {
+			input [2*i] = (i < inputLength) ? typedArray [i] : 0;
+			input [2*i + 1] = 0; 
+		};
+		var fft = new FFT.complex(FFT_N, false);
+		var ifft = new FFT.complex(FFT_N, true);
+			
+		fft.simple(output, input, 1)
+		// ifft.simple(input, output, 1)
+	
+		// Calculate the power spectrum
+		powerSpectrum = new Float32Array(FFT_N);
+		// Scale per frequency
+		var scalingPerHz = Math.log10(typedArray.length/sampleRate) * 10;
+		var powerScaling = Math.log10(FFT_N) * -20 + scalingPerHz;
+		for(var i = 0; i < FFT_N; ++ i) {
+			var powerValue = (output[2*i]*output[2*i] + output[2*i+1]*output[2*i+1]);
+			powerSpectrum[i] = Math.log10(powerValue) * 10;
+		};
 	};
 
 	// Set scales
@@ -437,6 +461,7 @@ function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax
 	
 	// Draw axes
 	drawingCtx.beginPath();
+	drawingCtx.strokeStyle = "black";
 	drawingCtx.lineWidth = 1;
 	drawingCtx.moveTo(horMargin, 0);
 	drawingCtx.lineTo(horMargin, plotHeight);
@@ -466,6 +491,7 @@ function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax
 
 	// Horizontal
 	drawingCtx.beginPath();
+	drawingCtx.strokeStyle = "black";
 	drawingCtx.lineWidth = 1;
 	for (var h = 0; h <= plotWidth; h += deltaHor) {
 		drawingCtx.beginPath();
@@ -480,6 +506,7 @@ function initializeExistingAnalysis () {
 	pitch = 0;
 	intensity = 0;
 	spectrogram = 0;
+	powerSpectrum = 0;
 };
 
 // Handle sound after decoding (used in audioProcessing.js)
@@ -543,4 +570,3 @@ function calculateSingleSpectrum (sound, sampleRate, time, window) {
 	
 	return powerSpectrum;
 };
-

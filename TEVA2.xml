@@ -59,7 +59,7 @@ button {
 	<button type="button" style="color: gray; bottom: 2%; left: 32%" id="RecordButton" disabled="true" ><span style="font-size: 100%; ">&#9679;<br /><span id="Record">Record</span></span></button>
 	<button type="button" style="color: gray; bottom: 2%; left: 51%" id="PlayButton" disabled="true" ><span style="font-size: 100%">&#9658;<br /><span id="Play">Play</span></span></button>
 
-	<button type="button" style="color: black; bottom: 84%; right: 2%; height: 10%" id="Settings" ><span style="font-size: 100%">&#8594; <span id="Config" >Settings</span></span></button>
+	<button type="button" style="color: black; bottom: 84%; right: 2%; height: 10%; width: 12%" id="Settings" ><span style="font-size: 100%">&#8594; <span id="Config" >Settings</span></span></button>
 
 	<button type="button" style="color: red; bottom: 72%; right: 2%; height: 10%; width: 12%" id="Draw_SoundButton" ><span style="font-size: 100%"><span id="Draw_Sound" >Sound</span></span></button>
 	<button type="button" style="color: black; bottom: 61%; right: 2%; height: 10%; width: 12%" id="Draw_PitchButton" ><span style="font-size: 100%"><span id="Draw_Pitch" >Pitch</span></span></button>
@@ -220,6 +220,9 @@ button {
 			recordingLight.style.left = "2%";
 			recordingLight.style.fontSize = "15vmin";
 		    recordingLight.style.color = "red";
+		    
+		    // Reset existing parameters
+		    initializeExistingAnalysis();
 		    
 		    recordRTC.initRecorder();
 			recordRTC.startRecording();

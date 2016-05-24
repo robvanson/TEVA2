@@ -364,7 +364,7 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	drawingCtx.stroke();
 };
 
-var powerSpectrum = 0;
+var ltasPowerSpectrum = 0;
 function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
@@ -378,7 +378,7 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var horMax = fMax;
 	var maxPower = 90;
 	
-	if (! powerSpectrum) {
+	if (! ltasPowerSpectrum) {
 		// Calculate FFT
 		// This is stil just the power in dB.
 		var inputLength = typedArray.length;
@@ -396,23 +396,23 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 		// ifft.simple(input, output, 1)
 	
 		// Calculate the power spectrum
-		powerSpectrum = new Float32Array(FFT_N);
+		ltasPowerSpectrum = new Float32Array(FFT_N);
 		// Scale per frequency
 		var scalingPerHz = Math.log10(typedArray.length/sampleRate) * 10;
 		var powerScaling = Math.log10(FFT_N) * -20 + scalingPerHz;
 		for(var i = 0; i < FFT_N; ++ i) {
 			var powerValue = (output[2*i]*output[2*i] + output[2*i+1]*output[2*i+1]);
-			powerSpectrum[i] = Math.log10(powerValue) * 10;
+			ltasPowerSpectrum[i] = Math.log10(powerValue) * 10;
 		};
 	};
 
 	// Set scales
-	var numFrames = fMax/sampleRate * powerSpectrum.length ;
+	var numFrames = fMax/sampleRate * ltasPowerSpectrum.length ;
 	var maxSpectrum = 0;
 	var minSpectrum = maxPower;
 	for (var i = 0; i < numFrames; ++i) {
-		if (powerSpectrum [i] > maxSpectrum) maxSpectrum = powerSpectrum [i];
-		if (powerSpectrum [i] < minSpectrum) minSpectrum = powerSpectrum [i];
+		if (ltasPowerSpectrum [i] > maxSpectrum) maxSpectrum = ltasPowerSpectrum [i];
+		if (ltasPowerSpectrum [i] < minSpectrum) minSpectrum = ltasPowerSpectrum [i];
 	};
 	maxPower = Math.ceil(1.1 * maxSpectrum / 10) * 10;
 	var verMax = maxPower;
@@ -435,10 +435,10 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var vScale = plotHeight / verMax;
 	var resetLine = 0;
 	
-	drawingCtx.moveTo(horMargin, plotHeight - powerSpectrum[0] * vScale);
+	drawingCtx.moveTo(horMargin, plotHeight - ltasPowerSpectrum[0] * vScale);
 	for(var i = 1; i < numFrames; ++i) {
 		var currentTime = fMin + i * hScale;
-		var currentValue = powerSpectrum[i];
+		var currentValue = ltasPowerSpectrum[i];
 		if (currentValue > 0) {
 			drawingCtx.lineTo(horMargin + i * hScale , plotHeight - currentValue * vScale);
 		};
@@ -506,7 +506,7 @@ function initializeExistingAnalysis () {
 	pitch = 0;
 	intensity = 0;
 	spectrogram = 0;
-	powerSpectrum = 0;
+	ltasPowerSpectrum = 0;
 };
 
 // Handle sound after decoding (used in audioProcessing.js)

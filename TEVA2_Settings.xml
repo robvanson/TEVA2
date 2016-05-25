@@ -128,8 +128,6 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		setRecordingTime (teva_settings.recSecs);
 		setFrequency (teva_settings.frequency);
 
-		localRecordingTime.value = teva_settings.recSecs;
-		localFrequency.value = teva_settings.frequency+"kHz";
 		teva_settings.settingsRead = "true";
 	};
 	
@@ -146,7 +144,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 	function getRecordingTime () {
 		var index = document.getElementById("RecordingTime").selectedIndex;
 		var value = document.getElementById("RecordingTime").options[index].value;
-		if (index <= 0) value = 3;
+		if (index < 0) value = 3;
 		return value;
 	}
 	
@@ -163,13 +161,14 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		var index = document.getElementById("Frequency").selectedIndex;
 		var value = document.getElementById("Frequency").options[index].value;
 		if (index <= 0) value = "2";
-		value = value.replace("[^0-9]", "");
-		return value;
+		value = value.replace(/[^0-9]/, "");
+		return value*1;
 	}
 	
 	function setFrequency (value) {
-		for(var x = 0; x < document.getElementById("Frequency").options.length; ++ x) {
-			if (document.getElementById("Frequency").options[x].value == value+"kHz") {
+		var valueTxt = value+"k";
+		for(var x = 0; x < document.getElementById("Frequency").options.length; ++x) {
+			if (document.getElementById("Frequency").options[x].value == valueTxt) {
 				document.getElementById("Frequency").selectedIndex = x;
 			};
 		};

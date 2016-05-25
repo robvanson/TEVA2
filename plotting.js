@@ -202,8 +202,6 @@ function draw_spectrogram (canvasId, color, typedArray, sampleRate, duration) {
 	
 	// Frequency step per sample
 	maxFindex = (2 * verMax / sampleRate) * spectrogram[0]["spectrum"].length;
-	dVer = plotHeight / maxFindex;
-	dHor = plotWidth / numFrames;
 	// Determine maximum
 	var pmax = 0;
 	for (var i = 0; i < spectrogram.length; ++i) {
@@ -214,20 +212,22 @@ function draw_spectrogram (canvasId, color, typedArray, sampleRate, duration) {
 			if (p > pmax) pmax = p;
 		};
 	};
-	pmax = pmax > 0 ? pmax : 60;
-	var dynamicRange = 60;
-	for (var i = 0; i < spectrogram.length; ++i) {
-		var t = spectrogram[i].t;
-		var spectrum = spectrogram[i].spectrum;
-		var x = (t / duration) * plotWidth;
-		for (var y = 0; y < maxFindex; ++y) {
-			var power = spectrum[y];
-			var p = (power) ? 10 * Math.log10(power) : 0;
+	var dynamicRange = 80;
+	pmax = pmax > 0 ? pmax : dynamicRange;
+	var stepT = (horMax - horMin)/plotWidth;
+	var stepF = (verMax - verMin)/plotHeight;
+	var dHor = 1;
+	var dVer = 1;
+	for (var t = 0; t < duration; t += stepT) {
+		var x = (t - horMin) / (horMax - horMin) * plotWidth;
+		for (var f = 0; f < verMax; f += stepF) {
+			var y = ((f - verMin) / (verMax - verMin)) * plotHeight;
+			var p = getSpectrogramPower (spectrogram, sampleRate, dT, t, f);
 			var grayLevel = 255;
 			grayLevel = 255*(pmax - p)/dynamicRange;
 			grayLevel = (grayLevel < 254) ? Math.round(grayLevel) : 254;
 			drawingCtx.fillStyle = "rgb("+grayLevel+", "+grayLevel+", "+grayLevel+")";
-			drawingCtx.fillRect(Math.floor(horMargin + x), Math.ceil(plotHeight - (y-1)*dVer), Math.ceil(dHor), Math.ceil(dVer));
+			drawingCtx.fillRect(Math.round(horMargin + x), Math.ceil(plotHeight - y), Math.ceil(dHor), Math.ceil(dVer));
 			drawingCtx.stroke();
 		};
 	};
@@ -528,6 +528,61 @@ function calculate_spectrogram (sound, sampleRate, fMin, fMax, dT) {
 		spectrumArray.push({t: t, spectrum: currentSpectrum});
 	};
 	return spectrumArray;
+};
+
+function getSpectrogramPower (spectrogram, sampleRate, dT, t, f) {
+	// Sanity checks
+	if (t < 0 || t > spectrogram[spectrogram.length - 1]["t"] ) return 0;
+	if (f < 0 || f >= sampleRate / 2) return 0;
+	
+	// Determine time and frequency slices
+	var x = t/dT;
+	var y = (2 * f / sampleRate) * spectrogram[0]["spectrum"].length;
+	var x1 = Math.floor(x);
+	var x2 = x1;
+	var y1 = Math.floor(y);
+	var f1 = y1*sampleRate/(2*spectrogram[0]["spectrum"].length);
+	var y2 = Math.ceil(y);
+	var f2 = y2*sampleRate/(2*spectrogram[0]["spectrum"].length);
+	
+	var t1 = spectrogram[x1]["t"];
+	var t2 = t1;
+	while (t2 < t && x < spectrogram.length) {
+		x1 = x2;
+		++x2;
+		t1 = t2;
+		t2 = spectrogram[x2]["t"];
+	};
+	while (t1 > t && x >= 0) {
+		--x;
+		x2 = x1;
+		--x1;
+		t2 = t1;
+		t1 = spectrogram[x1]["t"];
+	};
+	
+	// Get 4 power values
+	var p11 = spectrogram[x1]["spectrum"][y1];
+	p11 = (p11) ? 10 * Math.log10(p11) : 0;
+	var p12 = spectrogram[x1]["spectrum"][y2]
+	p12 = (p12) ? 10 * Math.log10(p12) : 0;
+	var p21 = spectrogram[x2]["spectrum"][y1]
+	p21 = (p21) ? 10 * Math.log10(p21) : 0;
+	var p22 = spectrogram[x2]["spectrum"][y2]
+	p22 = (p22) ? 10 * Math.log10(p22) : 0;
+	
+	// interpolate
+	var p1 = p11;
+	var p2 = p11;
+	if (f2 - f1 > 0) {
+		p1 = ((f2 - f)*p11 + (f - f1)*p12)/(f2 - f1);
+		p2 = ((f2 - f)*p21 + (f - f1)*p22)/(f2 - f1);
+	};
+	var power = p1;
+	if (t2 - t1 > 0) {
+		power = ((t2 - t)*p1 + (t - t1)*p2)/(t2 - t1);
+	};
+	return power;
 };
 
 function calculateSingleSpectrum (sound, sampleRate, time, window) {

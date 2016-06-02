@@ -410,6 +410,7 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 		if (ltasPowerSpectrum [i] < minSpectrum) minSpectrum = ltasPowerSpectrum [i];
 	};
 	maxPower = Math.ceil(1.1 * maxSpectrum / 10) * 10;
+
 	var verMax = maxPower;
 	var verMin = minSpectrum < 0 ? Math.floor(minSpectrum / 10) * 10 : 0;
 
@@ -619,4 +620,37 @@ function calculateSingleSpectrum (sound, sampleRate, time, window) {
 	};
 	
 	return powerSpectrum;
+};
+
+
+// Temp
+function plotBoundaries (canvasId, xleft, ytop, xright, ybot) {
+	var drawingCtx = setDrawingParam(canvasId);
+	var plotHeight = 0.9 * drawingCtx.canvas.height;
+	drawingCtx.beginPath();
+	drawingCtx.strokeStyle = "blue";
+	drawingCtx.lineWidth = 1;
+	drawingCtx.moveTo(xleft, 0);
+	drawingCtx.lineTo(xleft, plotHeight);
+	drawingCtx.stroke();
+	drawingCtx.beginPath();
+	drawingCtx.strokeStyle = "blue";
+	drawingCtx.lineWidth = 1;
+	drawingCtx.moveTo(xright, 0);
+	drawingCtx.lineTo(xright, plotHeight);
+	drawingCtx.stroke();
+	
+};
+
+function plotRectDrawingArea (canvasId, xleft, ytop, xright, ybot) {
+	var drawingCtx = setDrawingParam(canvasId);
+	drawingCtx.beginPath();
+	drawingCtx.strokeStyle = "blue";
+	drawingCtx.lineWidth = 1;
+	drawingCtx.moveTo(xleft, ytop);
+	drawingCtx.lineTo(xleft, ybot);
+	drawingCtx.lineTo(xright, ybot);
+	drawingCtx.lineTo(xright, ytop);
+	drawingCtx.lineTo(xleft, ytop);
+	drawingCtx.stroke();
 };

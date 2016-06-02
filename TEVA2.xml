@@ -75,11 +75,62 @@ button {
 	var recordedSource = audioContext.createBufferSource(); // creates a sound source
   
 	var recordingLight = document.getElementById('RecordingLight');
+	var drawingArea = document.getElementById('DrawingArea');
 	var settingsButton = document.getElementById('Settings');
 	var record = document.getElementById('RecordButton');
 	var play = document.getElementById('PlayButton');
 	var stopRecording, playSound;
 
+	// Swipes with mouse or touch
+	var interval = {left: -1, right: -1, bot: -1, top: -1};
+	// Add touch events
+	drawingArea.addEventListener("touchstart", mouseDown, false);
+	drawingArea.addEventListener("touchend", mouseUp, false);
+	// Parameters
+	var mouseDownCoordinates = {x: -1, y: -1};
+	var mouseUpCoordinates = {x: -1, y: -1};
+	// Mouse down or touch start
+	function mouseDown (e) {
+		if (e.touches) e.preventDefault();
+		mouseDownCoordinates.x = e.touches ? e.touches[0].clientX : e.clientX;
+		mouseDownCoordinates.y = e.touches ? e.touches[0].clientY : e.clientY;
+		mouseUpCoordinates.x = -1;
+		mouseUpCoordinates.y = -1;
+	};
+	// Mouse up or touch end
+	function mouseUp (e) {
+
+		mouseUpCoordinates.x = e.touches ? e.touches[e.touches.length - 1].clientX : e.clientX;
+		mouseUpCoordinates.y = e.touches ? e.touches[e.touches.length - 1].clientY : e.clientY;
+		
+		if (mouseDownCoordinates.x > -1 && mouseDownCoordinates.y > -1) {
+			var rect = drawingArea.getBoundingClientRect();
+			interval.left = 1000*(mouseDownCoordinates.x - rect.left)/rect.width;
+			interval.right = 1000*(mouseUpCoordinates.x - rect.left)/rect.width;
+			interval.top = 1000*(mouseDownCoordinates.y - rect.top)/rect.height;
+			interval.bot = 1000*(mouseUpCoordinates.y - rect.top)/rect.height;
+			if (mouseUpCoordinates.x < mouseDownCoordinates.x) {
+				interval.left = 1000*(mouseUpCoordinates.x - rect.left)/rect.width;
+				interval.right = 1000*(mouseDownCoordinates.x - rect.left)/rect.width;
+			};
+			if (mouseUpCoordinates.y > mouseDownCoordinates.y) {
+				interval.top = 1000*(mouseUpCoordinates.y - rect.top)/rect.height;
+				interval.bot = 1000*(mouseDownCoordinates.y - rect.top)/rect.height;
+			};
+		};
+
+		mouseDownCoordinates.x = -1;
+		mouseDownCoordinates.y = -1;
+		mouseUpCoordinates.x = -1;
+		mouseUpCoordinates.y = -1;
+		
+		plotBoundaries ("DrawingArea", interval.left, interval.top, interval.right, interval.bot);
+
+	};
+	drawingArea.onmousedown = mouseDown;
+	drawingArea.onmouseup = mouseUp;
+	drawingArea.onmouseout = mouseUp;
+	
 	/*
 	 * Global variables from audioProcessing
 	 * 

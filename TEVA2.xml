@@ -80,6 +80,7 @@ button {
 	var record = document.getElementById('RecordButton');
 	var play = document.getElementById('PlayButton');
 	var stopRecording, playSound;
+	var windowStart = windowEnd = 0;
 	var startTime = endTime = 0;
 
 	// Swipes with mouse or touch
@@ -123,8 +124,8 @@ button {
 		mouseDownCoordinates.y = -1;
 		mouseUpCoordinates.x = -1;
 		mouseUpCoordinates.y = -1;
-	
-		var newInterval = getBoundaries (0, recordedDuration, "DrawingArea", interval.left, interval.top, interval.right, interval.bot);
+		
+		var newInterval = getBoundaries (windowStart, windowEnd, "DrawingArea", interval.left, interval.top, interval.right, interval.bot);
 		startTime = newInterval.t1;
 		endTime = newInterval.t2;
 		

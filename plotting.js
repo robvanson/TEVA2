@@ -93,21 +93,21 @@ function drawSignal (display) {
 	resetDrawingParam (drawingCtx);
 	if (recordedArray) {
 		if (display == "Sound") {
-			draw_waveform (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);
+			draw_waveform (canvasId, color, recordedArray, recordedSampleRate, windowStart, windowEnd);
 		} else if (display == "Pitch") {
-			draw_pitch (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);		
+			draw_pitch (canvasId, color, recordedArray, recordedSampleRate, windowStart, windowEnd, windowStart, windowEnd);		
 		} else if (display == "Spectrogram") {
-			draw_spectrogram (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);
+			draw_spectrogram (canvasId, color, recordedArray, recordedSampleRate, windowStart, windowEnd, windowStart, windowEnd);
 		} else if (display == "Ltas") {
-			draw_ltas (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);		
+			draw_ltas (canvasId, color, recordedArray, recordedSampleRate, windowStart, windowEnd);		
 		} else if (display == "Intensity") {
-			draw_intensity (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);		
+			draw_intensity (canvasId, color, recordedArray, recordedSampleRate, windowStart, windowEnd, windowStart, windowEnd);		
 		} else {
 		};
 	};
 }
 
-function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
+function draw_waveform (canvasId, color, typedArray, sampleRate, windowStart, windowEnd) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
 	var horMargin = 0.02 * drawingCtx.canvas.width;
@@ -115,13 +115,13 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 	var verMargin = 0.02 * drawingCtx.canvas.height
 	var tickLength = 10;
 	
-	var tmin = 0;
-	var tmax = duration;
+	var tmin = windowStart;
+	var tmax = windowEnd;
 	var verMax = 1;
 	var verMin = -1;
 	var deltaVer = 0.1 * plotHeight;
-	var horMin = 0;
-	var horMax = duration;
+	var horMin = tmin;
+	var horMax = tmax;
 	
 	// Determine amplitude
 	var amplitude = 0;
@@ -167,7 +167,7 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 
 // Keep analysis
 var spectrogram = 0; 
-function draw_spectrogram (canvasId, color, typedArray, sampleRate, duration) {
+function draw_spectrogram (canvasId, color, typedArray, sampleRate, windowStart, windowEnd) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
 	var horMargin = 0.02 * drawingCtx.canvas.width;
@@ -179,13 +179,10 @@ function draw_spectrogram (canvasId, color, typedArray, sampleRate, duration) {
 	var verMin = 0;
 	var verMax = teva_settings.frequency * 1000; 
 	var dT = 0.01;
-	var horMin = 0;
-	var horMax = duration;
+	var horMin = windowStart;
+	var horMax = windowEnd;
 	var maxPower = 90;
 	
-	// Set scales
-	var numFrames = duration / dT;
-
 	if (! spectrogram) spectrogram = calculate_spectrogram (typedArray, sampleRate, fMin, fMax, dT);
 	// spectrogram = calculate_spectrogram (typedArray, sampleRate, fMin, fMax, dT);
 
@@ -220,7 +217,7 @@ function draw_spectrogram (canvasId, color, typedArray, sampleRate, duration) {
 	var stepF = (verMax - verMin)/plotHeight;
 	var dHor = 1;
 	var dVer = 1;
-	for (var t = 0; t < duration; t += stepT) {
+	for (var t = windowStart; t < windowEnd; t += stepT) {
 		var x = (t - horMin) / (horMax - horMin) * plotWidth;
 		for (var f = 0; f < verMax; f += stepF) {
 			var y = ((f - verMin) / (verMax - verMin)) * plotHeight;
@@ -244,7 +241,7 @@ function draw_spectrogram (canvasId, color, typedArray, sampleRate, duration) {
 
 // Keep analysis
 var pitch = 0; 
-function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
+function draw_pitch (canvasId, color, typedArray, sampleRate, windowStart, windowEnd) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
 	var horMargin = 0.02 * drawingCtx.canvas.width;
@@ -254,8 +251,8 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
 	var fMin = 60;
 	var fMax = 600;
 	var dT = 0.01;
-	var horMin = 0;
-	var horMax = duration;
+	var horMin = windowStart;
+	var horMax = windowEnd;
 	var maxPower = 40;
 	var verMax = fMax;
 	var verMin = 0;
@@ -280,7 +277,9 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
 	var resetLine = 0;
 	
 	drawingCtx.moveTo(horMargin, plotHeight - pitch[0] * vScale);
-	for(var i = 1; i < numFrames; ++i) {
+	var minFrame = Math.floor(horMin/recordedDuration*numFrames);
+	var maxFrame = Math.ceil(horMax/recordedDuration*numFrames);
+	for(var i = minFrame; i < maxFrame; ++i) {
 		var currentTime = horMin + i * hScale;
 		var currentValue = pitch[i];
 		if (currentValue > 0) {
@@ -304,7 +303,7 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
 };
 
 var intensity = 0; 
-function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
+function draw_intensity (canvasId, color, typedArray, sampleRate, windowStart, windowEnd) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
 	var horMargin = 0.02 * drawingCtx.canvas.width;
@@ -315,8 +314,8 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	var fMax = 600;
 	var dT = 0.01;
 	
-	var tmin = 0;
-	var tmax = duration;
+	var tmin = windowStart;
+	var tmax = windowEnd;
 	var maxPower = 96;
 	var verMax = maxPower;
 	var verMin = 0;
@@ -351,7 +350,9 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	var resetLine = 0;
 	
 	drawingCtx.moveTo(horMargin, plotHeight - intensity[0] * vScale);
-	for(var i = 1; i < numFrames; i+=1) {
+	var minFrame = Math.floor(tmin/recordedDuration*numFrames);
+	var maxFrame = Math.ceil(tmax/recordedDuration*numFrames);
+	for(var i = minFrame; i < maxFrame; i+=1) {
 		var currentTime = tmin + i * tScale;
 		var currentValue = intensity[i];
 		if (currentValue > 0) {
@@ -368,7 +369,7 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 
 var ltasPowerSpectrum = 0;
 var lastStart = lastEnd = -1;
-function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
+function draw_ltas (canvasId, color, typedArray, sampleRate, windowStart, windowEnd) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
 	var horMargin = 0.02 * drawingCtx.canvas.width;
@@ -383,6 +384,8 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	
 	// Recalculate if anything changes
 	if (! ltasPowerSpectrum || lastStart != startTime || lastEnd != endTime) {
+		lastStart = startTime;
+		lastEnd = endTime;
 		// Calculate FFT
 		// Use only the part between the global parameters startTime and endTime
 		var startIndex = startTime > 0 ? Math.floor(startTime*sampleRate) : 0;
@@ -460,6 +463,14 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	// Draw axes
 	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
 	
+	// Print time interval
+	if(endTime <= 0) endTime = recordedDuration;
+	var text = "["+startTime.toPrecision(3)+", "+endTime.toPrecision(3)+"]";
+	var fontSize = 15;
+	drawingCtx.font = fontSize+"px Helvetica";
+	drawingCtx.fillStyle = "black";
+	var xstart = horMargin + plotWidth - text.length*fontSize/2;
+	drawingCtx.fillText(text, xstart, fontSize);	
 };
 
 function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax, horMin, horMax) {

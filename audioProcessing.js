@@ -55,6 +55,8 @@ function decodedDone(decoded) {
 	recordedArray = cut_silent_margins (currentArray, recordedSampleRate);
 	currentAudioWindow = recordedArray;
 	recordedDuration = recordedArray.length / recordedSampleRate;
+	windowStart = 0;
+	windowEnd = recordedDuration;
 
 	// make sure this funciton is defined!!!
 	processRecordedSound ();

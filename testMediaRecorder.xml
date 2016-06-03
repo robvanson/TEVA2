@@ -85,7 +85,7 @@ button {
 			
 			// Play recorded sound
 		play.onclick = function() {
-			play_soundArray (currentAudioWindow, recordedSampleRate);
+			play_soundArray (currentAudioWindow, recordedSampleRate, 0, 0);
 		};
 		
 		// Stop

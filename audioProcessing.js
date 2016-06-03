@@ -60,13 +60,19 @@ function decodedDone(decoded) {
 	processRecordedSound ();
 };
 
-function play_soundArray (soundArray, sampleRate) {
-	var soundBuffer = audioContext.createBuffer(1, soundArray.length, sampleRate);
-	var buffer = soundBuffer.getChannelData(0);	
-	for (var i = 0; i < soundArray.length; i++) {
-	     buffer[i] = soundArray[i];
+function play_soundArray (soundArray, sampleRate, start, end) {
+	var startSample = start > 0 ? Math.floor(start * sampleRate) : 0;
+	var endSample = end > 0 ? Math.ceil(end * sampleRate) : soundArray.length;
+	if (startSample > soundArray.length || endSample > soundArray.length) {
+		startSample = 0;
+		endSample = soundArray.length;
 	};
-	
+	var soundBuffer = audioContext.createBuffer(1, endSample - startSample, sampleRate);
+	var buffer = soundBuffer.getChannelData(0);
+	for (var i = 0; i < (endSample - startSample); i++) {
+	     buffer[i] = soundArray[startSample + i];
+	};
+
 	// Get an AudioBufferSourceNode.
 	// This is the AudioNode to use when we want to play an AudioBuffer
 	var source = audioContext.createBufferSource();
@@ -110,23 +116,23 @@ function getWindowRMS (window) {
 // Cut off the silent margins
 // ISSUE: After the first recording, there is a piece at the start missing.
 // This is now cut off
-function cut_silent_margins (recordedArray, sampleRate) {
+function cut_silent_margins (typedArray, sampleRate) {
 	// Find part with sound
 	var silentMargin = 0.1;
 	// Silence thresshold is -20 dB
 	var thressHoldDb = 25;
 	// Stepsize
 	var dT = 0.01;
-	var soundLength = recordedArray.length;
+	var soundLength = typedArray.length;
 
 	// There is sometimes (often) a delay before recording is started
 	var firstNonZero = 0;
-	while (firstNonZero < recordedArray.length && !recordedArray[firstNonZero]) {
+	while (firstNonZero < typedArray.length && !typedArray[firstNonZero]) {
 		++firstNonZero
 	};
 	
 	// Calculation intensity
-	var currentIntensity = calculate_Intensity (recordedArray, sampleRate, 75, 600, 0.01);
+	var currentIntensity = calculate_Intensity (typedArray, sampleRate, 75, 600, 0.01);
 	var maxInt = Math.max.apply(Math, currentIntensity);
 	var silenceThresshold = maxInt - thressHoldDb;
 
@@ -156,7 +162,7 @@ function cut_silent_margins (recordedArray, sampleRate) {
 	var newLength = Math.ceil(lastSample - firstSample);
 	var soundArray = new Float32Array(newLength);
 	for (var i = 0; i < newLength; ++i) {
-		soundArray [i] = recordedArray[firstSample + i];
+		soundArray [i] = typedArray[firstSample + i];
 	};
 	return soundArray;
 };

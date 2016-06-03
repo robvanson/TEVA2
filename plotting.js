@@ -60,12 +60,12 @@ var testDrawing = function (canvasId, color, order) {
 var lightSize = 15;
 var maxPowerRecorded = 90;
 var thresshold = 0.1;
-function display_recording_level (id, recordedArray) {
+function display_recording_level (id, typedArray) {
 	var sumSquare = 0;
 	var nSamples = 0;
-	for (var i = 0; i < recordedArray.length; ++i) {
-		if(Math.abs(recordedArray[i]) > thresshold) {
-			sumSquare += recordedArray[i] * recordedArray[i];
+	for (var i = 0; i < typedArray.length; ++i) {
+		if(Math.abs(typedArray[i]) > thresshold) {
+			sumSquare += typedArray[i] * typedArray[i];
 			++nSamples;
 		};
 	};
@@ -103,7 +103,7 @@ function drawSignal (display) {
 		} else if (display == "Intensity") {
 			draw_intensity (canvasId, color, recordedArray, recordedSampleRate, recordedDuration);		
 		} else {
-		}
+		};
 	};
 }
 
@@ -161,6 +161,8 @@ function draw_waveform (canvasId, color, typedArray, sampleRate, duration) {
 	
 	// Draw axes
 	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
+	// Plot boundarie using global variables
+	plotBoundaries (canvasId, 0, recordedDuration, startTime, endTime);
 };
 
 // Keep analysis
@@ -236,7 +238,8 @@ function draw_spectrogram (canvasId, color, typedArray, sampleRate, duration) {
 	
 	// Draw axes
 	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
-
+	// Plot boundarie using global variables
+	plotBoundaries (canvasId, 0, recordedDuration, startTime, endTime);
 };
 
 // Keep analysis
@@ -267,9 +270,6 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
 	
 	var numFrames = horMax / dT;
 	
-	// Draw axes
-	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
-
 	// Reset drawing
 	drawingCtx.beginPath();
 	drawingCtx.lineWidth = 2;
@@ -296,6 +296,11 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, duration) {
 		};
 	};
 	drawingCtx.stroke();
+	
+	// Draw axes
+	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
+	// Plot boundarie using global variables
+	plotBoundaries (canvasId, 0, recordedDuration, startTime, endTime);
 };
 
 var intensity = 0; 
@@ -336,9 +341,6 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 	
 	var numFrames = intensity.length;
 	
-	// Draw axes
-	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
-
 	// Reset drawing
 	drawingCtx.beginPath();
 	drawingCtx.lineWidth = 0.5;
@@ -357,9 +359,15 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, duration) {
 		};
 	};
 	drawingCtx.stroke();
+	
+	// Draw axes
+	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
+	// Plot boundarie using global variables
+	plotBoundaries (canvasId, 0, recordedDuration, startTime, endTime);
 };
 
 var ltasPowerSpectrum = 0;
+var lastStart = lastEnd = -1;
 function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotWidth = 0.95 * drawingCtx.canvas.width;
@@ -373,16 +381,28 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	var horMax = fMax;
 	var maxPower = 90;
 	
-	if (! ltasPowerSpectrum) {
+	// Recalculate if anything changes
+	if (! ltasPowerSpectrum || lastStart != startTime || lastEnd != endTime) {
 		// Calculate FFT
+		// Use only the part between the global parameters startTime and endTime
+		var startIndex = startTime > 0 ? Math.floor(startTime*sampleRate) : 0;
+		var endIndex = endTime > 0 ? Math.ceil(endTime*sampleRate) : typedArray.length;
+		if (startIndex > typedArray.length || endIndex > typedArray.length) {
+			startIndex = 0;
+			endIndex = typedArray.length;
+		};
 		// This is stil just the power in dB.
-		var inputLength = typedArray.length;
+		var inputLength = endIndex - startIndex;
 		var FFT_N = Math.pow(2, Math.ceil(Math.log2(inputLength))) * 2;
 		var input = new Float32Array(FFT_N * 2);
 		var output = new Float32Array(FFT_N * 2);
 		for (var i = 0; i < FFT_N; ++i) {
-			input [2*i] = (i < inputLength) ? typedArray [i] : 0;
+			input [2*i] = (i < inputLength) ? typedArray [startIndex + i] : 0;
 			input [2*i + 1] = 0; 
+		};
+		// Remove NaN's from input
+		for (var i = 0; i < FFT_N; ++i) {
+			if(isNaN(input [2*i]))input [2*i] = 0;
 		};
 		var fft = new FFT.complex(FFT_N, false);
 		var ifft = new FFT.complex(FFT_N, true);
@@ -392,7 +412,6 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	
 		// Calculate the power spectrum
 		ltasPowerSpectrum = new Float32Array(FFT_N);
-		// Scale per frequency
 		var scalingPerHz = Math.log10(typedArray.length/sampleRate) * 10;
 		var powerScaling = Math.log10(FFT_N) * -20 + scalingPerHz;
 		for(var i = 0; i < FFT_N; ++ i) {
@@ -418,9 +437,6 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 	resetDrawingParam(drawingCtx);
 	drawingCtx.beginPath();
 	drawingCtx.strokeStyle = color;
-	
-	// Draw axes
-	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
 
 	// Reset drawing
 	drawingCtx.beginPath();
@@ -440,6 +456,9 @@ function draw_ltas (canvasId, color, typedArray, sampleRate, duration) {
 		};
 	};
 	drawingCtx.stroke();
+	
+	// Draw axes
+	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
 	
 };
 
@@ -624,22 +643,37 @@ function calculateSingleSpectrum (sound, sampleRate, time, window) {
 
 
 // Temp
-function plotBoundaries (canvasId, xleft, ytop, xright, ybot) {
+function getBoundaries (startTime, endTime, canvasId, xleft, ytop, xright, ybot) {
+	var drawingCtx = setDrawingParam(canvasId);
+	var t1 = startTime + (xleft - 0.02 * drawingCtx.canvas.width)/1000 * (endTime - startTime);
+	var t2 = startTime + (xright - 0.02 * drawingCtx.canvas.width)/1000 * (endTime - startTime);
+	if (t1 < startTime) t1 = startTime;
+	if (t2 > endTime) t2 = endTime;
+	return {t1: t1, t2: t2};
+};
+
+
+
+function plotBoundaries (canvasId, t1, t2, startTime, endTime) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotHeight = 0.9 * drawingCtx.canvas.height;
-	drawingCtx.beginPath();
-	drawingCtx.strokeStyle = "blue";
-	drawingCtx.lineWidth = 1;
-	drawingCtx.moveTo(xleft, 0);
-	drawingCtx.lineTo(xleft, plotHeight);
-	drawingCtx.stroke();
-	drawingCtx.beginPath();
-	drawingCtx.strokeStyle = "blue";
-	drawingCtx.lineWidth = 1;
-	drawingCtx.moveTo(xright, 0);
-	drawingCtx.lineTo(xright, plotHeight);
-	drawingCtx.stroke();
+	var xleft = startTime * 1000/(t2 - t1) + 0.02 * drawingCtx.canvas.width;
+	var xright = endTime * 1000/(t2 - t1) + 0.02 * drawingCtx.canvas.width;
 	
+	if (startTime > t1 && endTime < t2) {
+		drawingCtx.beginPath();
+		drawingCtx.strokeStyle = "blue";
+		drawingCtx.lineWidth = 1;
+		drawingCtx.moveTo(xleft, 0);
+		drawingCtx.lineTo(xleft, plotHeight);
+		drawingCtx.stroke();
+		drawingCtx.beginPath();
+		drawingCtx.strokeStyle = "blue";
+		drawingCtx.lineWidth = 1;
+		drawingCtx.moveTo(xright, 0);
+		drawingCtx.lineTo(xright, plotHeight);
+		drawingCtx.stroke();
+	}
 };
 
 function plotRectDrawingArea (canvasId, xleft, ytop, xright, ybot) {

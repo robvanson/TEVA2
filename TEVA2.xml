@@ -80,6 +80,7 @@ button {
 	var record = document.getElementById('RecordButton');
 	var play = document.getElementById('PlayButton');
 	var stopRecording, playSound;
+	var startTime = endTime = 0;
 
 	// Swipes with mouse or touch
 	var interval = {left: -1, right: -1, bot: -1, top: -1};
@@ -102,8 +103,7 @@ button {
 
 		mouseUpCoordinates.x = e.touches ? e.touches[e.touches.length - 1].clientX : e.clientX;
 		mouseUpCoordinates.y = e.touches ? e.touches[e.touches.length - 1].clientY : e.clientY;
-		
-		if (mouseDownCoordinates.x > -1 && mouseDownCoordinates.y > -1) {
+		if (mouseDownCoordinates.x > -1 && mouseDownCoordinates.y > -1 && teva_settings.display != "Ltas") {
 			var rect = drawingArea.getBoundingClientRect();
 			interval.left = 1000*(mouseDownCoordinates.x - rect.left)/rect.width;
 			interval.right = 1000*(mouseUpCoordinates.x - rect.left)/rect.width;
@@ -123,9 +123,13 @@ button {
 		mouseDownCoordinates.y = -1;
 		mouseUpCoordinates.x = -1;
 		mouseUpCoordinates.y = -1;
+	
+		var newInterval = getBoundaries (0, recordedDuration, "DrawingArea", interval.left, interval.top, interval.right, interval.bot);
+		startTime = newInterval.t1;
+		endTime = newInterval.t2;
 		
-		plotBoundaries ("DrawingArea", interval.left, interval.top, interval.right, interval.bot);
-
+		// Redraw the screen
+		drawSignal (teva_settings.display);
 	};
 	drawingArea.onmousedown = mouseDown;
 	drawingArea.onmouseup = mouseUp;
@@ -243,7 +247,7 @@ button {
 
 		// Play recorded sound
 		play.onclick = function() {
-			play_soundArray (currentAudioWindow, recordedSampleRate);
+			play_soundArray (currentAudioWindow, recordedSampleRate, startTime, endTime);
 		};
 		
 		// Stop

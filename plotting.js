@@ -522,6 +522,7 @@ function initializeExistingAnalysis () {
 	intensity = 0;
 	spectrogram = 0;
 	ltasPowerSpectrum = 0;
+	startTime = endTime = 0;
 };
 
 // Handle sound after decoding (used in audioProcessing.js)
@@ -659,21 +660,46 @@ function plotBoundaries (canvasId, t1, t2, startTime, endTime) {
 	var plotHeight = 0.9 * drawingCtx.canvas.height;
 	var xleft = startTime * 1000/(t2 - t1) + 0.02 * drawingCtx.canvas.width;
 	var xright = endTime * 1000/(t2 - t1) + 0.02 * drawingCtx.canvas.width;
+	var fontSize = 10;
 	
-	if (startTime > t1 && endTime < t2) {
+	if (startTime > t1 && startTime < t2) {
 		drawingCtx.beginPath();
 		drawingCtx.strokeStyle = "blue";
 		drawingCtx.lineWidth = 1;
 		drawingCtx.moveTo(xleft, 0);
 		drawingCtx.lineTo(xleft, plotHeight);
 		drawingCtx.stroke();
+		drawingCtx.font = fontSize+"px Helvetica";
+		drawingCtx.fillStyle = "blue";
+		// Print where there is room
+		if (xright - xleft > 2*(startTime.toPrecision(3).length+1)*fontSize/2) {
+			drawingCtx.fillText(" "+startTime.toPrecision(3), xleft, fontSize);
+		} else if (xright - xleft > (startTime.toPrecision(3).length+1)*fontSize/2) {
+			drawingCtx.fillText(startTime.toPrecision(3), xleft, fontSize);
+		} else {
+			drawingCtx.fillText(startTime.toPrecision(3), xleft - ((startTime.toPrecision(3).length+1)*fontSize/2), fontSize);
+		};
+		drawingCtx.fillStyle = "black";
+	};
+	if (endTime > t1 && endTime < t2) {
 		drawingCtx.beginPath();
 		drawingCtx.strokeStyle = "blue";
 		drawingCtx.lineWidth = 1;
 		drawingCtx.moveTo(xright, 0);
 		drawingCtx.lineTo(xright, plotHeight);
 		drawingCtx.stroke();
-	}
+		drawingCtx.font = fontSize+"px Helvetica";
+		drawingCtx.fillStyle = "blue";
+		// Print where there is room
+		if (xright - xleft < (endTime.toPrecision(3).length+1)*fontSize/2) {
+			drawingCtx.fillText(" "+endTime.toPrecision(3), xright, fontSize);
+		} else if (xright - xleft < 2*(endTime.toPrecision(3).length+1)*fontSize/2) {
+			drawingCtx.fillText(endTime.toPrecision(3), xright - ((endTime.toPrecision(3).length) * fontSize/2), 2*fontSize);
+		} else {
+			drawingCtx.fillText(endTime.toPrecision(3), xright - ((endTime.toPrecision(3).length + 1) * fontSize/2), fontSize);
+		};
+		drawingCtx.fillStyle = "black";
+	};
 };
 
 function plotRectDrawingArea (canvasId, xleft, ytop, xright, ybot) {

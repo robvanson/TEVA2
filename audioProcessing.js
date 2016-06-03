@@ -162,7 +162,8 @@ function cut_silent_margins (typedArray, sampleRate) {
 	var newLength = Math.ceil(lastSample - firstSample);
 	var soundArray = new Float32Array(newLength);
 	for (var i = 0; i < newLength; ++i) {
-		soundArray [i] = typedArray[firstSample + i];
+		// Also, get rid of NaN's
+		soundArray [i] = !isNaN(typedArray[firstSample + i]) ? typedArray[firstSample + i] : 0;
 	};
 	return soundArray;
 };

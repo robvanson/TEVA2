@@ -50,7 +50,7 @@ button {
 <script type="text/javascript" src="fft.js/lib/real.js" ></script>   
 <script type="text/javascript" src="RecordRTC.min.js" defer="true" ></script>
 </head>
-<body  onload="if(window.speechSynthesis)window.speechSynthesis.getVoices();" onfocus="load_TEVA_settings ();" onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); if(settingsWindow)settingsWindow.close(); " >
+<body  onload="if(window.speechSynthesis)window.speechSynthesis.getVoices();" onfocus="load_TEVA_settings ();" onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); if(settingsWindow)settingsWindow.close(); "  contextmenu="mymenu" >
 	<div style="color: gray; position: fixed; top: 5%; left: 2%; font-size: 15vmin; text-align: center; " id="RecordingLight">&#9679;</div>
 	<div id="waveform" style="position: fixed; top: 5%; left: 20%; width: 60%; height: 60% " ></div>
 	
@@ -66,7 +66,7 @@ button {
 	<button type="button" style="color: black; bottom: 50%; right: 2%; height: 10%; width: 12%" id="Draw_SpectrogramButton" ><span style="font-size: 100%"><span id="Draw_Spectrogram" >Spectrogram</span></span></button>
 	<button type="button" style="color: black; bottom: 39%; right: 2%; height: 10%; width: 12%" id="Draw_LtasButton" ><span style="font-size: 100%"><span id="Draw_Ltas" >Ltas</span></span></button>
 	<button type="button" style="color: black; bottom: 28%; right: 2%; height: 10%; width: 12%" id="Draw_IntensityButton" ><span style="font-size: 100%"><span id="Draw_Intensity" >Intensity</span></span></button>
-
+	
     <script type="text/javascript">
 	//<![CDATA[
 	// Set DOM parameters
@@ -91,6 +91,7 @@ button {
 	// Parameters
 	var mouseDownCoordinates = {x: -1, y: -1};
 	var mouseUpCoordinates = {x: -1, y: -1};
+
 	// Mouse down or touch start
 	function mouseDown (e) {
 		if (e.touches) e.preventDefault();
@@ -99,6 +100,7 @@ button {
 		mouseUpCoordinates.x = -1;
 		mouseUpCoordinates.y = -1;
 	};
+
 	// Mouse up or touch end
 	function mouseUp (e) {
 
@@ -299,5 +301,13 @@ button {
 	//]]>	
 
 	</script>
+
+	<menu type="context" id="mymenu">
+		<menuitem label="Save file" onclick="alert('Save file');" icon="TEVA.png"></menuitem>
+		<menuitem label="Load file" onclick="alert('Load file');" icon="TEVA.png"></menuitem>
+		<menu label="More things..." icon="TEVA.png">
+			<menuitem label="Settings" icon="TEVA.png" onclick="settingsWindow = window.open('TEVA2_Settings.xml', '_blank');"></menuitem>
+		</menu>
+	</menu>
 </body>
 </html>

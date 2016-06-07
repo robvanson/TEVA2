@@ -534,6 +534,7 @@ function initializeExistingAnalysis () {
 	spectrogram = 0;
 	ltasPowerSpectrum = 0;
 	startTime = endTime = 0;
+	interval = {left: -1, right: -1, bot: -1, top: -1};
 };
 
 // Handle sound after decoding (used in audioProcessing.js)

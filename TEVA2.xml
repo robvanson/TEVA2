@@ -56,6 +56,8 @@ button {
 	
 	<canvas id="DrawingArea" width="1000" height="1000" style="position: fixed; top: 5%; left: 7.5%; width: 77.5%; height: 80%; "></canvas> 
 	
+	<input type="file" id="HiddenFileButton" name="OpenFile" style="display:none" onchange='openFile (this.files); this.value="";' title="Open" />
+	<button type="button" style="color: black; bottom: 2%; left: 13%" id="FileButton" ><span style="font-size: 100%; "><span id="File">Open</span></span></button>
 	<button type="button" style="color: gray; bottom: 2%; left: 32%" id="RecordButton" disabled="true" ><span style="font-size: 100%; ">&#9679;<br /><span id="Record">Record</span></span></button>
 	<button type="button" style="color: gray; bottom: 2%; left: 51%" id="PlayButton" disabled="true" ><span style="font-size: 100%">&#9658;<br /><span id="Play">Play</span></span></button>
 
@@ -77,6 +79,8 @@ button {
 	var recordingLight = document.getElementById('RecordingLight');
 	var drawingArea = document.getElementById('DrawingArea');
 	var settingsButton = document.getElementById('Settings');
+	var fileButton = document.getElementById('FileButton');
+	var hiddenFileButton = document.getElementById('HiddenFileButton');
 	var record = document.getElementById('RecordButton');
 	var play = document.getElementById('PlayButton');
 	var stopRecording, playSound;
@@ -130,6 +134,8 @@ button {
 		var newInterval = getBoundaries (windowStart, windowEnd, "DrawingArea", interval.left, interval.top, interval.right, interval.bot);
 		startTime = newInterval.t1;
 		endTime = newInterval.t2;
+		// Reset
+		newInterval = {t1: 0, t2: 0};
 		
 		// Redraw the screen
 		drawSignal (teva_settings.display);
@@ -185,6 +191,27 @@ button {
 			settingsWindow = window.open('TEVA2_Settings.xml', '_blank');
 			localStorage.settingsWindow = "true";
 		}
+	};
+	
+	// Open file
+	function openFile (files) {
+		// Only read the FIRST file
+		if (files[0]) {
+			processAudio (files [0]);
+			
+		    play.disabled = false;
+		    record.disabled = false;
+		    record.style.color = "red";
+		    play.style.color = "red";
+		    recordingLight.style.color = "gray";			
+
+		    // Reset existing parameters
+		    initializeExistingAnalysis();
+		};
+	};
+	
+	fileButton.onclick = function () {
+	    hiddenFileButton.click();
 	};
 	
 	// Global settings

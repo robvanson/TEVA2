@@ -34,12 +34,12 @@ var audioContext = new AudioContext();
 // Decode the audio blob
 var audioProcessing_decodedArray;
 function processAudio (blob) {
-	var reader = new FileReader();
-	reader.onload = function(){
-		var arrayBuffer = reader.result;
+	var audioReader = new FileReader();
+	audioReader.onload = function(){
+		var arrayBuffer = audioReader.result;
 		audioContext.decodeAudioData(arrayBuffer, decodedDone);
 	};
-	reader.readAsArrayBuffer(blob);
+	audioReader.readAsArrayBuffer(blob);
 };
 
 // You need a function "processRecordedSound ()"
@@ -310,3 +310,17 @@ function calculate_Intensity (sound, sampleRate, fMin, fMax, dT) {
 		
 	return intensity;
 };
+
+
+// load the sound from a URL
+function load_audio(url) {
+	var request = new XMLHttpRequest();
+	request.open('GET', url, true);
+	request.responseType = 'arraybuffer';
+	// When loaded decode the data and store the audio buffer in memory
+	request.onload = function() {
+		processAudio (request.response);
+	}
+	request.send();
+}
+    

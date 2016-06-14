@@ -84,7 +84,6 @@ button {
 	var record = document.getElementById('RecordButton');
 	var play = document.getElementById('PlayButton');
 	var stopRecording, playSound;
-	var windowStart = windowEnd = 0;
 	var startTime = endTime = 0;
 
 	// Swipes with mouse or touch

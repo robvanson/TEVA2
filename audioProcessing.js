@@ -21,6 +21,17 @@
 var recordedBlob, recordedBlobURL;
 var recordedArray, currentAudioWindow;
 var recordedSampleRate, recordedDuration;
+var recordedPitchTier;
+var windowStart = windowEnd = 0;
+
+var clearRecording = function () { 
+	recordedBlob = undefined;
+	recordedBlobURL = undefined;
+	recordedArray = undefined;
+	currentAudioWindow = undefined;
+	recordedSampleRate = recordedDuration = undefined;
+	recordedPitchTier = undefined;
+};
 
 /*
  * 
@@ -129,7 +140,7 @@ function cut_silent_margins (typedArray, sampleRate) {
 
 	// There is sometimes (often) a delay before recording is started
 	var firstNonZero = 0;
-	while (firstNonZero < typedArray.length && !typedArray[firstNonZero]) {
+	while (firstNonZero < typedArray.length && (isNaN(typedArray[firstNonZero]) || typedArray[firstNonZero] == 0)) {
 		++firstNonZero
 	};
 	
@@ -222,7 +233,7 @@ function calculate_Pitch (sound, sampleRate, fMin, fMax, dT) {
 	var pitchArray = new Float32Array(Math.floor(duration / dT));
 	var lagMin = (fMax > 0) ? 1/fMax : 1/600;
 	var lagMax = (fMin > 0) ? 1/fMin : 1/60;
-	var thressHold = 0.01;
+	var thressHold = 0.001;
 	
 	// Set up window and calculate Autocorrelation of window
 	var windowDuration = lagMax * 6;
@@ -323,4 +334,26 @@ function load_audio(url) {
 	}
 	request.send();
 }
-    
+
+/*
+ * 
+ * Use: var perc = get_percentiles (points, function (a, b) { return a.value-b.value;}, function(a) { return a.value <= 0;}, [0.05, 0.50, 0.95]);
+ * 
+ */
+function get_percentiles (points, compare, remove, percentiles) {
+	var sortList = points.slice();
+	var result = [];
+	sortList.sort(compare);
+	var sortListLength = sortList.length
+	for (var i = sortListLength-1; i >= 0; --i) {
+		if (remove(sortList[i])) sortList.splice(i, 1);
+	};
+	for (var i = 0; i < percentiles.length; ++i) {
+		var perc = percentiles[i];
+		if (perc > 1) perc /= 100;
+		var newPercentile = sortList[Math.ceil(perc * sortList.length)];
+		newPercentile["percentile"] = percentiles[i]; 
+		result.push(newPercentile)
+	};
+	return result;
+};

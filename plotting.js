@@ -247,6 +247,7 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, windowStart, windo
 	var horMargin = 0.02 * drawingCtx.canvas.width;
 	var plotHeight = 0.9 * drawingCtx.canvas.height
 	var verMargin = 0.02 * drawingCtx.canvas.height
+	var pitchTier = {};
 	
 	var fMin = 60;
 	var fMax = 600;
@@ -256,9 +257,17 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, windowStart, windo
 	var maxPower = 40;
 	var verMax = fMax;
 	var verMin = 0;
+	var recordedDuration = windowEnd - windowStart;
 	
-	if (! pitch) pitch = calculate_Pitch (typedArray, sampleRate, fMin, fMax, dT);
-	verMax = Math.ceil(Math.max.apply(Math, pitch) * 1.5 / 10) * 10;
+	if (! pitch) {
+		pitchTier = toPitchTier (typedArray, sampleRate, fMin, fMax, dT);
+		pitch = pitchTier.points.items;
+	};
+	maxPitch = 0;
+	for (var i = 0; i < pitch.length; ++i) {
+		if (pitch[i].value > maxPitch) maxPitch = pitch[i].value
+	};
+	verMax = Math.ceil(maxPitch * 1.5 / 10) * 10;
 	
 	// Set parameters
 	resetDrawingParam(drawingCtx);
@@ -272,22 +281,23 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, windowStart, windo
 	drawingCtx.lineWidth = 2;
 	
 	// Scale to plot area
-	var hScale = plotWidth / numFrames;
+	var hScale = plotWidth / recordedDuration;
 	var vScale = plotHeight / verMax;
 	var resetLine = 0;
 	
-	drawingCtx.moveTo(horMargin, plotHeight - pitch[0] * vScale);
+	drawingCtx.moveTo(horMargin, plotHeight - pitch[0].value * vScale);
 	var minFrame = Math.floor(horMin/recordedDuration*numFrames);
 	var maxFrame = Math.ceil(horMax/recordedDuration*numFrames);
+	if (maxFrame > pitch.length) maxFrame = pitch.length;
 	for(var i = minFrame; i < maxFrame; ++i) {
-		var currentTime = horMin + i * hScale;
-		var currentValue = pitch[i];
+		var currentTime = pitch[i].x - horMin;
+		var currentValue = pitch[i].value;
 		if (currentValue > 0) {
 			if (resetLine) {
-				drawingCtx.moveTo(horMargin + i * hScale , plotHeight - currentValue * vScale);
+				drawingCtx.moveTo(horMargin + currentTime * hScale , plotHeight - currentValue * vScale);
 				resetLine = 0;
 			} else {
-				drawingCtx.lineTo(horMargin + i * hScale , plotHeight - currentValue * vScale);
+				drawingCtx.lineTo(horMargin + currentTime * hScale , plotHeight - currentValue * vScale);
 			};
 		} else {
 			drawingCtx.moveTo(horMargin + i * hScale , plotHeight - currentValue * vScale);

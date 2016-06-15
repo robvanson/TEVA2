@@ -230,7 +230,7 @@ function autocorrelation (sound, sampleRate, time, window) {
 
 /*
  * 
- * David, hier zijn de pitch routines:
+ * David Weenink, hier zijn de pitch routines:
  * - Autocorrelation peak picking for candidates
  * - Pitch tracking for selecting the best candidate
  * 

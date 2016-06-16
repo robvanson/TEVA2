@@ -264,8 +264,10 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, windowStart, windo
 		pitch = pitchTier.points.items;
 	};
 	maxPitch = 0;
+	var pitchArray = [];
 	for (var i = 0; i < pitch.length; ++i) {
 		if (pitch[i].value > maxPitch) maxPitch = pitch[i].value
+		pitchArray[i] = pitch[i].value;
 	};
 	verMax = Math.ceil(maxPitch * 1.5 / 10) * 10;
 	
@@ -276,6 +278,15 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, windowStart, windo
 	
 	var numFrames = horMax / dT;
 	
+	var startIndex = Math.floor(startTime/dT);
+	var endIndex = endTime > 0 ? Math.floor(endTime/dT) : pitchArray.length;
+	var voicedFract = 100*math_fraction(pitchArray.slice(startIndex, endIndex), function(v){return v>0;});
+	var maxWindow = math_max(pitchArray.slice(startIndex, endIndex), function(v){return v>0;});
+	var minWindow = math_min(pitchArray.slice(startIndex, endIndex), function(v){return v>0;});
+	var meanWindow = math_mean(pitchArray.slice(startIndex, endIndex), function(v){return v>0;});
+	var sdWindow = math_std(pitchArray.slice(startIndex, endIndex), function(v){return v>0;});
+	var subText = "Pitch - "+"Voiced: "+voicedFract.toPrecision(2)+"%, "+"Max.: "+maxWindow.toPrecision(3)+" Hz, Min.: "+minWindow.toPrecision(3)+" Hz, Mean.: "+meanWindow.toPrecision(3)+" Hz, SD: "+sdWindow.toPrecision(3)+" Hz";
+
 	// Reset drawing
 	drawingCtx.beginPath();
 	drawingCtx.lineWidth = 2;
@@ -308,6 +319,8 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, windowStart, windo
 	
 	// Draw axes
 	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
+	plotSubText (canvasId, subText);
+
 	// Plot boundarie using global variables
 	plotBoundaries (canvasId, 0, recordedDuration, startTime, endTime);
 };
@@ -350,6 +363,14 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, windowStart, w
 	
 	var numFrames = intensity.length;
 	
+	var startIndex = Math.floor(startTime/dT);
+	var endIndex = endTime > 0 ? Math.floor(endTime/dT) : intensity.length;
+	var maxWindow = math_max(intensity.slice(startIndex, endIndex), true);
+	var minWindow = math_min(intensity.slice(startIndex, endIndex), true);
+	var meanWindow = math_mean(intensity.slice(startIndex, endIndex), true);
+	var sdWindow = math_std(intensity.slice(startIndex, endIndex), true);
+	var subText = "Intensity - "+"Max.: "+maxWindow.toPrecision(3)+" dB, Min.: "+minWindow.toPrecision(3)+" dB, Mean.: "+meanWindow.toPrecision(3)+" dB, SD: "+sdWindow.toPrecision(3)+" dB";
+	
 	// Reset drawing
 	drawingCtx.beginPath();
 	drawingCtx.lineWidth = 0.5;
@@ -373,6 +394,8 @@ function draw_intensity (canvasId, color, typedArray, sampleRate, windowStart, w
 	
 	// Draw axes
 	plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth,  verMin, verMax, horMin, horMax);
+	plotSubText (canvasId, subText);
+
 	// Plot boundarie using global variables
 	plotBoundaries (canvasId, 0, recordedDuration, startTime, endTime);
 };
@@ -538,6 +561,22 @@ function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax
 	
 };
 
+function plotSubText (canvasId, text) {
+	var drawingCtx = setDrawingParam(canvasId);
+	var plotWidth = 0.95 * drawingCtx.canvas.width;
+	var horMargin = 0.02 * drawingCtx.canvas.width;
+	var plotHeight = 0.9 * drawingCtx.canvas.height
+	var verMargin = 0.02 * drawingCtx.canvas.height
+	var fontSize = 20;
+	var textX = horMargin + fontSize;
+	var textY = plotHeight + verMargin + 2*fontSize;
+	
+	drawingCtx.font = fontSize+"px Helvetica";
+	drawingCtx.fillStyle = "blue";
+	drawingCtx.fillText(text, textX, textY);	
+	drawingCtx.fillStyle = "black";
+};
+
 function initializeExistingAnalysis () {
 	pitch = 0;
 	intensity = 0;
@@ -675,8 +714,6 @@ function getBoundaries (startTime, endTime, canvasId, xleft, ytop, xright, ybot)
 	return {t1: t1, t2: t2};
 };
 
-
-
 function plotBoundaries (canvasId, t1, t2, startTime, endTime) {
 	var drawingCtx = setDrawingParam(canvasId);
 	var plotHeight = 0.9 * drawingCtx.canvas.height;
@@ -723,7 +760,7 @@ function plotBoundaries (canvasId, t1, t2, startTime, endTime) {
 		drawingCtx.fillStyle = "black";
 	};
 };
-
+	
 function plotRectDrawingArea (canvasId, xleft, ytop, xright, ybot) {
 	var drawingCtx = setDrawingParam(canvasId);
 	drawingCtx.beginPath();
@@ -735,4 +772,78 @@ function plotRectDrawingArea (canvasId, xleft, ytop, xright, ybot) {
 	drawingCtx.lineTo(xright, ytop);
 	drawingCtx.lineTo(xleft, ytop);
 	drawingCtx.stroke();
+};
+
+
+// Additional functions. 
+// useValue == true or function useValue (v) {return true/false}
+
+function math_max (array, useValue) {
+	if (array.length == 0) return undefined;
+	var max = -Infinity;
+	for (var i=0; i<array.length; ++i) {
+		if(useValue == true || useValue(array[i])) {
+			if (array[i] > max) max = array[i];
+		};
+	};
+	return max;
+};
+
+function math_min (array, useValue) {
+	if (array.length == 0) return undefined;
+	var min = Infinity;
+	for (var i=0; i<array.length; ++i) {
+		if(useValue == true || useValue(array[i])) {
+			if (array[i] < min) min = array[i];
+		};
+	};
+	return min;
+};
+
+function math_mean (array, useValue) {
+	if (array.length == 0) return 0;
+	var sum = 0;
+	var n = 0;
+	for (var i=0; i<array.length; ++i) {
+		if(useValue == true || useValue(array[i])) {
+			sum += array[i];
+			++n;
+		};
+	};
+	return sum / n;
+};
+
+function math_variance (array, useValue) {
+	if (array.length < 2) return 0;
+	var sum = 0;
+	var sumSQR = 0;
+	var n = 0;
+	for (var i=0; i<array.length; ++i) {
+		var v = array[i];
+		if(useValue == true || useValue(v)) {
+			sum += v;
+			sumSQR += v*v;
+			++n;
+		};
+	};
+
+	return (sumSQR - sum*sum / array.length) / (array.length - 1);
+};
+
+function math_std (array, useValue) {
+	var variance = math_variance (array, useValue);
+	return Math.sqrt(variance);
+};
+
+function math_fraction (array, useValue) {
+	var n=0;
+	var n_total=0;
+	for (var i=0; i<array.length; ++i) {
+		var v = array[i];
+		++n_total;
+		if(useValue == true || useValue(v)) {
+			++n;
+		};
+	};
+	return n_total > 0 ? n/n_total : undefined;
 };

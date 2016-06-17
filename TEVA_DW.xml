@@ -230,11 +230,12 @@ button {
 		secondRecordedDuration = decoded.duration;
 		var length = decoded.length;
 		
-		// Process and draw audio
+		// Process audio
 		secondRecordedArray = cut_silent_margins (currentArray, secondRecordedSampleRate);
-		// Fixed values
-		secondRecordedPitchTier = toPitchTier (secondRecordedArray, secondRecordedSampleRate, 60, 300, 0.01);
 		
+		// Just calculate the pitchTiers and the DTW. Look up in console.log
+		secondRecordedPitchTier = toPitchTier (secondRecordedArray, secondRecordedSampleRate, 60, 300, 0.01);
+
 		switchButton.style.color = "black";
 		switchButton.disabled = false;
 	};
@@ -250,11 +251,7 @@ console.log(files);
 		secondRecordedPitchTier = undefined;
 		
 		// Only read the FIRST TWO files
-		// First, the second file
-		if (files[1]) {
-			processAudio2 (files [1]);
-		};
-		// Then the first. The first will be draw.
+		// The first file. The first will be drawn.
 		if (files[0]) {
 			processAudio (files [0]);
 			
@@ -266,6 +263,10 @@ console.log(files);
 
 		    // Reset existing parameters
 		    initializeExistingAnalysis();
+		};
+		// The second file
+		if (files[1]) {
+			processAudio2 (files [1]);
 		};
 	};
 		
@@ -351,6 +352,18 @@ console.log(files);
 		// Play recorded sound
 		play.onclick = function() {
 			play_soundArray (currentAudioWindow, recordedSampleRate, startTime, endTime);
+
+// David Weenink: 
+// Calculate the pitchTier and DTW when Play is pressed
+// This is needed as it is not known when the sound files are available.
+// The result is visible in the console
+if(recordedArray) {
+	recordedPitchTier = toPitchTier (recordedArray, recordedSampleRate, 60, 300, 0.01);
+	
+	var dtw = toDTW(recordedPitchTier, secondRecordedPitchTier);
+	console.log(dtw);
+}
+
 		};
 		
 		// Stop

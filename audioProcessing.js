@@ -384,8 +384,9 @@ function get_percentiles (points, compare, remove, percentiles) {
 	for (var i = 0; i < percentiles.length; ++i) {
 		var perc = percentiles[i];
 		if (perc > 1) perc /= 100;
-		var newPercentile = sortList[Math.ceil(perc * sortList.length)];
-		newPercentile["percentile"] = percentiles[i]; 
+		var newPercentile = {value: undefined, percentile: 0};
+		newPercentile.value = sortList[Math.ceil(perc * sortList.length)];
+		newPercentile.percentile = percentiles[i]; 
 		result.push(newPercentile)
 	};
 	return result;

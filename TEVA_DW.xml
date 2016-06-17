@@ -357,7 +357,7 @@ console.log(files);
 // Calculate the pitchTier and DTW when Play is pressed
 // This is needed as it is not known when the sound files are available.
 // The result is visible in the console
-if(recordedArray) {
+if(recordedArray && secondRecordedPitchTier) {
 	recordedPitchTier = toPitchTier (recordedArray, recordedSampleRate, 60, 300, 0.01);
 	
 	var dtw = toDTW(recordedPitchTier, secondRecordedPitchTier);

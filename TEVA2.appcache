@@ -5,6 +5,7 @@ CACHE MANIFEST
 # Author: Rob van Son <r.j.j.h.vanson@gmail.com>
 # Date:   Fri Jun 17 16:07:07 2016 +0200
 
+
 CACHE:
 Background.png
 TEVA.png
@@ -26,4 +27,4 @@ images/ TEVA.png
 
 NETWORK:
 # This will prevent other network resources from being accessed.
-TEVA.png
+*

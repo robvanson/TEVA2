@@ -10,4 +10,9 @@
   "start_url": "TEVA2.xml",
     "display": "standalone",
   "orientation": "landscape"
+  "sandbox": {
+    "pages": [
+      "TEVA2.xml",
+      "TEVA2_Settings.xml"
+    ]
 }

@@ -39,7 +39,6 @@ self.addEventListener('install', function(event) {
 	'TEVA2_Settings.xml',
 	'audioProcessing.js',
 	'internationalization_tables.js',
-	'manifest.json',
 	'fft.js/lib/real.js',
 	'fft.js/lib/complex.js',
 	'plotting.js',

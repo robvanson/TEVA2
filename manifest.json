@@ -9,7 +9,7 @@
   ],
   "start_url": "TEVA2.xml",
     "display": "standalone",
-  "orientation": "landscape"
+  "orientation": "landscape",
   "sandbox": {
     "pages": [
       "TEVA2.xml",

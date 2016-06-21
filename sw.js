@@ -33,6 +33,7 @@ self.addEventListener('install', function(event) {
   var now = Date.now();
 
   var urlsToPrefetch = [
+	'/',
 	'Background.png',
 	'TEVA.png',
 	'TEVA2.xml',

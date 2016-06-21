@@ -80,6 +80,7 @@ button {
 	    console.log('ServiceWorker registration failed: ', err);
 	  });
 	}
+	
 	// Set DOM parameters
 	var settingsWindow;
 	var audioContext = new AudioContext();

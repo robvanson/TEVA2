@@ -95,6 +95,18 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 	
     <script type="text/javascript">
 	//<![CDATA[
+	// Install the service worker for offline use
+	if ('serviceWorker' in navigator) {
+	  navigator.serviceWorker.register('sw.js').then(function(registration) {
+	    // Registration was successful
+	    console.log('ServiceWorker registration successful with scope: ',    registration.scope);
+	  }).catch(function(err) {
+	    // registration failed :(
+	    console.log('ServiceWorker registration failed: ', err);
+	  });
+	}
+	
+	// Get DOM elements
 	var mainWindow = localStorage.mainWindow;
 	
 	var localRecordingTime = document.getElementById('RecordingTime');

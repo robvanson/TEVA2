@@ -16,8 +16,7 @@
   "start_url": "TEVA2.xml",
     "display": "standalone",
   "orientation": "landscape",
-  "content_security_policy": "default-src 'self'; script-src 'self' 'unsafe-eval'; object-src 'self'"
-
+  "content_security_policy": "default-src 'self'; script-src 'self' 'unsafe-eval'; object-src 'self'",
   "sandbox": {
     "pages": [
       "TEVA2.xml",

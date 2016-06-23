@@ -1,6 +1,10 @@
 {
-  "manifest_version": 2,
-  "version": "1",  
+   "app": {
+    "background": {
+    }
+   },
+   "manifest_version": 2,
+  "version": "1.002",  
   "short_name": "TEVA 2",
   "name": "TEVA 2",
   "icons": [
@@ -12,7 +16,8 @@
   "start_url": "TEVA2.xml",
     "display": "standalone",
   "orientation": "landscape",
-  "content_security_policy": "default-src 'self'",
+  "content_security_policy": "default-src 'self'; script-src 'self' 'unsafe-eval'; object-src 'self'"
+
   "sandbox": {
     "pages": [
       "TEVA2.xml",

@@ -43,6 +43,7 @@ self.addEventListener('install', function(event) {
 	'TEVA.png',
 	'TEVA2.xml',
 	'TEVA2_Settings.xml',
+	'TEVA2_Credits.xml',
 	'audioProcessing.js',
 	'internationalization_tables.js',
 	'fft.js/lib/real.js',

@@ -49,7 +49,7 @@ button {
 
 <script type="text/javascript" src="internationalization_tables.js" ></script>   
 </head>
-<body onfocus="load_TEVA_settings (); " onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); localStorage.removeItem('settingsWindow');" >
+<body onfocus="load_TEVA_settings (); " onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); localStorage.removeItem('settingsWindow'); if(creditsWindow)creditsWindow.close(); " >
 <!--
 TEVA 2
 Copyright (C) 2016 R.J.J.H. van Son (r.j.j.h.vanson@gmail.com)
@@ -94,6 +94,8 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		<span id="RecordingTimePost" style="vertical-align: middle; " >---</span> 
 	</div>
 	
+	<div title=""><button type="button" style="color: black; bottom: 62%; left: 85%; height: 14%; width: 10%" id="CreditsButton" onclick="creditsWindow = window.open('TEVA2_Credits.xml', '_blank');" ><span id="Credits" >---</span></button></div>
+
     <script type="text/javascript">
 	//<![CDATA[
 	// Install the service worker for offline use
@@ -109,6 +111,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 	
 	// Get DOM elements
 	var mainWindow = localStorage.mainWindow;
+	var creditsWindow;
 	
 	var localRecordingTime = document.getElementById('RecordingTime');
 	var localFrequency = document.getElementById('Frequency');

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="xhtml-default.css" type="text/css" media="screen, aural, print" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN"
+    "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" >
+<head>
+<link rel="shortcut icon" href="TEVA.png" />
+<link rel="icon" sizes="192x192" href="TEVA.png" />
+<link rel="manifest" href="manifest.json" />
+<meta name="viewport" content="width=device-width" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta http-equiv="Content-Language" content="en" />
+<title lang="en" xml:lang="en" dir="ltr">Credits - TEVA</title>
+<style>
+body {
+	background-image: url("Background.png");
+	background-color: rgb(250,250,250);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 50%;
+    background-attachment: fixed;}
+h1 {
+	text-align: center;
+	}
+h2 {
+	text-align: center;
+	}
+p {
+	text-align: left; 
+	margin-left: 20%; 
+	margin-right: 20%;
+	}
+pre {
+	text-align: left; 
+	margin-left: 20%; 
+	margin-right: 20%;
+	}
+</style>
+</head>
+<body>
+<h1>
+	TEVA 2 <br />
+	NKI TE-VOICE ANALYSIS tool version 2.0 <br />
+</h1>
+<h2>Netherlands Cancer Institute tool for Tracheoesophageal Voice Analysis</h2>
+
+<p>
+For more information, visit our websites: 
+<a href="http://www.provoxweb.info/acoustic-analyses.html">http://www.provoxweb.info/acoustic-analyses.html</a>
+and 
+<a href="http://www.fon.hum.uva.nl/IFA-SpokenLanguageCorpora/NKIcorpora/NKI_TEVA/">http://www.fon.hum.uva.nl/IFA-SpokenLanguageCorpora/NKIcorpora/NKI_TEVA/</a>
+</p><p>  
+This application was made possible by an unrestricted research grant from
+ATOS MEDICAL AB: P.O. BOX 183 SE-242 22 HÖRBY SWEDEN
+</p><p>
+Japanese translation: Akiko Kanezaki and Chiharu Kamei<br />
+German translation: Irene Jacobi and Rob van Son
+</p><p>
+Copyrights © 2010-2016 by Rob van Son (NKI-AVL) - R.J.J.H.vanSon@gmail.com
+</p>   
+<pre>
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+ 
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses</a>.
+</pre>   
+</body>
+</html>

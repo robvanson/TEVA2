@@ -203,17 +203,21 @@ var mainpage_tables = {
 var config_tables = {
 	EN: {
 		RecordingTimePost: ["(sec)", "Time of recording in seconds"],
+		Credits: ["About", "Information about NKI TE-VOICE ANALYSIS tool"],
 		},
 			
 	JA: {
 		RecordingTimePost: ["（秒）", "録音時間の秒数"],
+		Credits: ["TEVAについて", "オランダがんセンター音声分析ツールについて"],
 		},
 		
 	DE: {
 		RecordingTimePost: ["(sec)", "Aufnahmezeit in Secunden"],
+		Credits: ["über", "Informationen zur NKI TE-VOICE ANALYSIS tool"],
 		},		
 	NL: {
 		RecordingTimePost: ["(sec)", "Opnametijd in seconden"],
+		Credits: ["Over", "Informatie over NKI TE-VOICE ANALYSIS tool"],
 		}
 };
 

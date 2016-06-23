@@ -38,6 +38,7 @@ self.addEventListener('install', function(event) {
 
   var urlsToPrefetch = [
 	'/',
+	'manifest.json',
 	'Background.png',
 	'TEVA.png',
 	'TEVA2.xml',

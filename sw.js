@@ -25,7 +25,7 @@
 // flow and the old cache(s) will be purged as part of the activate event handler when the
 // updated service worker is activated.
 // 
-// commit 8f988746b1cfb99e03efdd454a404916a5eeeaf4rty
+// commit 8f988746b1cfb99e03efdd454a404916a5eeeaf4rtyrth
 // Author: Rob van Son <r.j.j.h.vanson@gmail.com>
 // Date:   Tue Jun 21 11:18:01 2016 +0200
 var CACHE_VERSION = 1;

@@ -1,4 +1,6 @@
 {
+  "manifest_version": 2,
+  "version": "1",  
   "short_name": "TEVA 2",
   "name": "TEVA 2",
   "icons": [
@@ -10,9 +12,11 @@
   "start_url": "TEVA2.xml",
     "display": "standalone",
   "orientation": "landscape",
+  "content_security_policy": "default-src 'self'",
   "sandbox": {
     "pages": [
       "TEVA2.xml",
       "TEVA2_Settings.xml"
     ]
+	}
 }

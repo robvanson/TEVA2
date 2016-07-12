@@ -79,21 +79,30 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		<option value="---" ><span id="LanguageCaption2" title="" >---</span></option>
 	</select> 
 
-	<div style="background-color: rgb(220,220,220); position: fixed; color: black; bottom: 65%; left: 25%; height: 8%; width: 17%; font-size: 3vmin; text-align: center; " id="LocalFrequency" title="">
-		<span id="FrequencyCaption" style="vertical-align: middle; " >---</span><br />
+	<div style="background-color: rgb(220,220,220); position: fixed; color: black; bottom: 70%; left: 25%; height: 8%; width: 15%; font-size: 3vmin; text-align: center; " id="LocalFrequency" title="">
+		<span id="FrequencyCaption" style="vertical-align: middle; " >---</span><br /><br />
 		<select id="Frequency"  style="font-size: 2vmin; vertical-align: middle; background-color: rgb(220,220,220);" onchange="teva_settings.frequency = getFrequency(); store_TEVA_settings (); ">
 		<option value="---" ><span id="FrequencyCaption2" title="" >---</span></option>
 		</select>
 	</div>
 	
-	<div style="background-color: rgb(220,220,220); position: fixed; color: black; bottom: 65%; left: 45%; height: 8%; width: 17%; font-size: 3vmin; text-align: center; " id="LocalRecordingTime" title="">
-		<span id="RecordingTimeCaption" style="vertical-align: middle; " >---</span><br />
+	<div style="background-color: rgb(220,220,220); position: fixed; color: black; bottom: 70%; left: 40%; height: 8%; width: 15%; font-size: 3vmin; text-align: center; " id="LocalRecordingTime" title="">
+		<span id="RecordingTimeCaption" style="vertical-align: middle; " >---</span><br /><br />
 		<select id="RecordingTime"  style="font-size: 2vmin; vertical-align: middle; background-color: rgb(220,220,220);" onchange="teva_settings.recSecs = getRecordingTime(); store_TEVA_settings (); ">
 			<option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="20">20</option>
 		</select>
 		<span id="RecordingTimePost" style="vertical-align: middle; " >---</span> 
 	</div>
 	
+	<div style="background-color: rgb(220,220,220); position: fixed; color: black; bottom: 70%; left: 58%; height: 8%; width: 15%; font-size: 3vmin; text-align: center; vertical-align: top; " id="LocalAudioCollection" title="">
+		<span id="AudioCollection" style="text-align: center; vertical-align: top; " >---</span>
+	</div>
+	<div style="background-color: rgb(220,220,220); position: fixed; color: black; bottom: 63%; left: 52%; height: 10%; width: 15%; font-size: 3vmin; text-align: center; vertical-align: bottom; " id="LocalSaveAudio" title="">
+		<button type="button" style="color: black; height: 10%; width: 12%; text-align: center; vertical-align: bottom; " id="SaveAudioButton" onclick="" >
+			<span id="SaveAudio" >---</span></button>
+	</div>
+
+
 	<div title=""><button type="button" style="color: black; bottom: 62%; left: 85%; height: 14%; width: 10%" id="CreditsButton" onclick="creditsWindow = window.open('TEVA2_Credits.xml', '_blank');" ><span id="Credits" >---</span></button></div>
 
     <script type="text/javascript">
@@ -115,7 +124,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 	
 	var localRecordingTime = document.getElementById('RecordingTime');
 	var localFrequency = document.getElementById('Frequency');
-
+	var saveAudioButton = document.getElementById('SaveAudioButton');
 	
 	// Global settings
 	var teva_settings = {
@@ -189,6 +198,13 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		};
 	};
 	
+	// Do things
+	saveAudioButton.onclick = function () {
+		if(currentAudioWindow && currentAudioWindow.length > 0 && recordedSampleRate) {
+			var blob = arrayToBlob (currentAudioWindow, startTime, endTime, recordedSampleRate);
+		};
+		
+	};
 	//]]>	
 	</script>
 

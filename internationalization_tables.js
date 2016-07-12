@@ -204,20 +204,28 @@ var config_tables = {
 	EN: {
 		RecordingTimePost: ["(sec)", "Time of recording in seconds"],
 		Credits: ["About", "Information about NKI TE-VOICE ANALYSIS tool"],
+		AudioCollection: ["Archive", "Recording and collection of audio"],
+		SaveAudio: ["Audio", "Save current audio selection to file"],
 		},
 			
 	JA: {
 		RecordingTimePost: ["（秒）", "録音時間の秒数"],
 		Credits: ["TEVAについて", "オランダがんセンター音声分析ツールについて"],
+		AudioCollection: ["アーカイブ", "オーディオの録音とコレクション"],
+		SaveAudio: ["オーディオ", "現在選択されているオーディオをファイルに保存"],
 		},
 		
 	DE: {
 		RecordingTimePost: ["(sec)", "Aufnahmezeit in Secunden"],
 		Credits: ["über", "Informationen zur NKI TE-VOICE ANALYSIS tool"],
+		AudioCollection: ["Aufbewahren", "Aufnahme un aufbewahren von audio"],
+		SaveAudio: ["Audio", "Audiovenster in einer Datei schreiben"],
 		},		
 	NL: {
 		RecordingTimePost: ["(sec)", "Opnametijd in seconden"],
 		Credits: ["Over", "Informatie over NKI TE-VOICE ANALYSIS tool"],
+		AudioCollection: ["Bewaren", "Opnemen en bewaren van audio"],
+		SaveAudio: ["Audio", "Bewaar huidige selectie van geluid naar bestand"],
 		}
 };
 

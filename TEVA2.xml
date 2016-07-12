@@ -53,6 +53,10 @@ button {
 <script type="text/javascript" src="RecordRTC.min.js" defer="true" ></script>
 </head>
 <body  onload="if(window.speechSynthesis)window.speechSynthesis.getVoices();" onfocus="load_TEVA_settings ();" onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); if(settingsWindow)settingsWindow.close(); "  contextmenu="mymenu" >
+
+<p><audio id='ExampleAudio' controls="false" hidden="true" ></audio></p>
+
+
 	<div style="color: gray; position: fixed; top: 5%; left: 2%; font-size: 15vmin; text-align: center; " id="RecordingLight">&#9679;</div>
 	<div id="waveform" style="position: fixed; top: 5%; left: 20%; width: 60%; height: 60% " ></div>
 	
@@ -97,7 +101,8 @@ button {
 	var record = document.getElementById('RecordButton');
 	var play = document.getElementById('PlayButton');
 	var stopRecording, playSound;
-	var startTime = endTime = 0;
+	var startTime = 0;
+	var endTime = 0;
 
 	// Swipes with mouse or touch
 	var interval = {left: -1, right: -1, bot: -1, top: -1};
@@ -110,6 +115,7 @@ button {
 
 	// Mouse down or touch start
 	function mouseDown (e) {
+		if (e.buttons == 2) return;
 		if (e.touches) e.preventDefault();
 		mouseDownCoordinates.x = e.touches ? e.touches[0].clientX : e.clientX;
 		mouseDownCoordinates.y = e.touches ? e.touches[0].clientY : e.clientY;
@@ -119,6 +125,7 @@ button {
 
 	// Mouse up or touch end
 	function mouseUp (e) {
+		if (e.buttons == 2) return;
 
 		mouseUpCoordinates.x = e.touches ? e.touches[e.touches.length - 1].clientX : e.clientX;
 		mouseUpCoordinates.y = e.touches ? e.touches[e.touches.length - 1].clientY : e.clientY;
@@ -330,11 +337,21 @@ button {
 	
 	};
 
+	var exampleElement = document.getElementById('ExampleAudio');
+
+	function saveAudio () {
+		var blob = arrayToBlob (currentAudioWindow, startTime, endTime, recordedSampleRate);
+		exampleElement.src = URL.createObjectURL(blob);
+		exampleElement.play();
+	};
+	
+	
 	if (navigator.mediaDevices.getUserMedia) {
 		navigator.mediaDevices.getUserMedia(mediaConstraints).then(successCallback).catch(errorCallback);
 	} else {
 		navigator.webkitGetUserMedia(mediaConstraints, successCallback, errorCallback);
 	};
+	
 
 
 	//]]>	
@@ -342,7 +359,7 @@ button {
 	</script>
 
 	<menu type="context" id="mymenu">
-		<menuitem label="Save file" onclick="alert('Save file');" icon="TEVA.png"></menuitem>
+		<menuitem label="Save file" onclick="alert('Save file'); saveAudio ();" icon="TEVA.png"></menuitem>
 		<menuitem label="Load file" onclick="alert('Load file');" icon="TEVA.png"></menuitem>
 		<menu label="More things..." icon="TEVA.png">
 			<menuitem label="Settings" icon="TEVA.png" onclick="settingsWindow = window.open('TEVA2_Settings.xml', '_blank');"></menuitem>

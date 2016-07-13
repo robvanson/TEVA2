@@ -54,6 +54,19 @@ function set_mainpageLanguage (language) {
 		};
 	};
 	
+	set_menuLanguage (language);
+	
+	localStorage.language = language;
+};
+
+function set_menuLanguage (language) {
+	var labels = menu_tables[language];
+	for(x in labels) {
+		if(document.getElementById(x)) {
+			document.getElementById(x).label = labels[x][0];
+			document.getElementById(x).title = labels[x][1];
+		};
+	};	
 	localStorage.language = language;
 };
 
@@ -276,6 +289,35 @@ var selector_tables = {
 		Frequency_1k: ["1kHz", "Ga tot 1 kHz"],
 		},
 }
+
+var menu_tables = {
+	EN: {
+		AudioCollection: ["Archive", "Recording and collection of audio"],
+		SaveAudio: ["Audio", "Save current audio selection to file"],
+		Speaker: ["Speakers", "Table with speaker data"],
+		SaveSpeaker: ["Save", "Write current table with speaker data"],
+		},
+			
+	JA: {
+		AudioCollection: ["アーカイブ", "オーディオの録音とコレクション"],
+		SaveAudio: ["オーディオ", "現在選択されているオーディオをファイルに保存"],
+		Speaker: ["話者", "話者データ一覧"],
+		SaveSpeaker: ["保存", "現在の表に話者データを書き込む"],
+		},
+		
+	DE: {
+		AudioCollection: ["Aufbewahren", "Aufnahme un aufbewahren von audio"],
+		SaveAudio: ["Audio", "Audiovenster in einer Datei schreiben"],
+		Speaker: ["Sprecher", "Tabelle mit den Sprecherdaten"],
+		SaveSpeaker: ["Speichern", "Speichere aktuelle Tabelle mit den Sprecherdaten"],
+		},		
+	NL: {
+		AudioCollection: ["Bewaren", "Opnemen en bewaren van audio"],
+		SaveAudio: ["Audio", "Bewaar huidige selectie van geluid naar bestand"],
+		Speaker: ["Sprekers", "Tabel met spreker gegevens"],
+		SaveSpeaker: ["Bewaar", "Bewaar huidige tabel met sprekergegevens"],
+		}
+};
 
 var language_table = {
 	Language_EN: ["English", "English language version"],

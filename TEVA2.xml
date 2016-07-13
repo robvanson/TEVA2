@@ -54,9 +54,6 @@ button {
 </head>
 <body  onload="if(window.speechSynthesis)window.speechSynthesis.getVoices();" onfocus="load_TEVA_settings ();" onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); if(settingsWindow)settingsWindow.close(); "  contextmenu="mymenu" >
 
-<p><audio id='ExampleAudio' controls="false" hidden="true" ></audio></p>
-
-
 	<div style="color: gray; position: fixed; top: 5%; left: 2%; font-size: 15vmin; text-align: center; " id="RecordingLight">&#9679;</div>
 	<div id="waveform" style="position: fixed; top: 5%; left: 20%; width: 60%; height: 60% " ></div>
 	
@@ -340,9 +337,9 @@ button {
 	
 	};
 
-	var exampleElement = document.getElementById('ExampleAudio');
-
 	function saveAudio () {
+		if (hiddenDownloadLink.href != "") URL.revokeObjectURL(hiddenDownloadLink.href);
+		
 		var blob = arrayToBlob (currentAudioWindow, startTime, endTime, recordedSampleRate);
 		// Get filename
 		var promptText = menu_tables[teva_settings.language]["SaveAudio"][1];

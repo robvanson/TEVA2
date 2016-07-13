@@ -100,7 +100,6 @@ function play_soundArray (soundArray, sampleRate, start, end) {
 	source.start();
 };
 
-
 /*
  * Convert typed mono array to WAV blob
  * 
@@ -450,7 +449,9 @@ function get_percentiles (points, compare, remove, percentiles) {
 	sortList.sort(compare);
 	var sortListLength = sortList.length
 	for (var i = sortListLength-1; i >= 0; --i) {
-		if (remove(sortList[i])) sortList.splice(i, 1);
+		if (remove(sortList[i])) {
+			sortList.splice(i, 1);
+		};
 	};
 	for (var i = 0; i < percentiles.length; ++i) {
 		var perc = percentiles[i];
@@ -461,4 +462,24 @@ function get_percentiles (points, compare, remove, percentiles) {
 		result.push(newPercentile)
 	};
 	return result;
+};
+
+// return the minim and maximum and their times
+function get_time_of_minmax (points) {
+	var min = Infinity;
+	var max = -Infinity;
+	var tmin = tmax = 0;
+	for (var i = 0; i < points.length; ++i) {
+		var currentValue = points[i].value;
+		var currentTime = points[i].time;
+		if (currentValue < min) {
+			min = currentValue;
+			tmin = currentTime;
+		};
+		if (currentValue > max) {
+			max = currentValue;
+			tmax = currentTime;
+		};
+	};
+	return {min: min, max: max, tmin: tmin, tmax: tmax};
 };

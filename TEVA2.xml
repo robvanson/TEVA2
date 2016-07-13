@@ -344,10 +344,12 @@ button {
 		// Get filename
 		var promptText = menu_tables[teva_settings.language]["SaveAudio"][1];
 		var fileName = prompt(promptText, menu_tables[teva_settings.language]["SaveAudio"][0]+".wav");
-		if(! fileName.match("\.wav$"))fileName += ".wav";
-        hiddenDownloadLink.download = fileName;
-        hiddenDownloadLink.href = URL.createObjectURL(blob);
-        hiddenDownloadLink.click();
+		if (fileName && fileName.length > 0) {
+			if(! fileName.match("\.wav$"))fileName += ".wav";
+	        hiddenDownloadLink.download = fileName;
+	        hiddenDownloadLink.href = URL.createObjectURL(blob);
+	        hiddenDownloadLink.click();
+        };
 	};
 	
 	

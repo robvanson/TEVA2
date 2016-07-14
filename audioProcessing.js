@@ -483,3 +483,61 @@ function get_time_of_minmax (points) {
 	};
 	return {min: min, max: max, tmin: tmin, tmax: tmax};
 };
+
+// Use IndexedDB as an Audio storage
+// Remove entry that have the same name
+function addAudioBlob(name, blob) {
+	var date = new Date().toLocaleString();
+	var db;
+	var request = indexedDB.open("Audio", 1);
+	request.onerror = function(event) {
+	  alert("Use of IndexedDB not allowed");
+	};
+	request.onsuccess = function(event) {
+		db = this.result;
+		var request = db.transaction(["Audio"], "readwrite")
+			.objectStore("Audio")
+			.put({ name: name, date: date, audio: blob });
+		
+		request.onsuccess = function(event) {
+			console.log("Success: ", this.result, " ", date);
+
+		};
+		
+		// If data already exist, update it
+		request.onerror = function(event) {
+			alert("Unable to add data\r\n"+name+" cannot be created or updated");
+			console.log("Unable to add data: "+name+" cannot be created or updated");
+		};
+	};
+
+	request.onupgradeneeded = function(event) {
+		var db = this.result;
+		// Create an objectStore to hold audio blobs.
+		var objectStore = db.createObjectStore("Audio", { keyPath: "name", autoincrement: false });
+		
+		// Use transaction oncomplete to make sure the objectStore creation is 
+		// finished before adding data into it.
+		objectStore.transaction.oncomplete = function(event) {
+			// Store values in the newly created objectStore.
+			var date = new Date().toLocaleString();
+			var customerObjectStore = db.transaction("Audio", "readwrite").objectStore("Audio");
+			customerObjectStore.add({name: name, date: date, audio: blob });
+		};
+	};
+};
+
+// Remove Audio storage, including ALL data
+function removeDataStorage (databaseName) {
+	var req = indexedDB.deleteDatabase(databaseName);
+	req.onsuccess = function () {
+	    console.log("Deleted database successfully");
+	};
+	req.onerror = function () {
+	    console.log("Couldn't delete database");
+	};
+	req.onblocked = function () {
+	    console.log("Couldn't delete database due to the operation being blocked");
+	};
+};
+	

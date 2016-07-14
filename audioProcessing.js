@@ -485,8 +485,9 @@ function get_time_of_minmax (points) {
 };
 
 // Use IndexedDB as an Audio storage
-// Remove entry that have the same name
-function addAudioBlob(name, blob) {
+// Remove entries that have the same name
+// The structure is: Directory, Filename, Binary data
+function addAudioBlob(storeName, name, blob) {
 	var date = new Date().toLocaleString();
 	var db;
 	var request = indexedDB.open("Audio", 1);
@@ -495,8 +496,8 @@ function addAudioBlob(name, blob) {
 	};
 	request.onsuccess = function(event) {
 		db = this.result;
-		var request = db.transaction(["Audio"], "readwrite")
-			.objectStore("Audio")
+		var request = db.transaction([storeName], "readwrite")
+			.objectStore(storeName)
 			.put({ name: name, date: date, audio: blob });
 		
 		request.onsuccess = function(event) {
@@ -514,21 +515,56 @@ function addAudioBlob(name, blob) {
 	request.onupgradeneeded = function(event) {
 		var db = this.result;
 		// Create an objectStore to hold audio blobs.
-		var objectStore = db.createObjectStore("Audio", { keyPath: "name", autoincrement: false });
-		
+		var objectStore = db.createObjectStore(storeName, { keyPath: "name", autoincrement: false });
 		// Use transaction oncomplete to make sure the objectStore creation is 
 		// finished before adding data into it.
 		objectStore.transaction.oncomplete = function(event) {
 			// Store values in the newly created objectStore.
 			var date = new Date().toLocaleString();
-			var customerObjectStore = db.transaction("Audio", "readwrite").objectStore("Audio");
+			var customerObjectStore = db.transaction([storeName], "readwrite").objectStore(storeName);
 			customerObjectStore.add({name: name, date: date, audio: blob });
+			request.onsuccess = function(event) {
+				console.log("Success: ", this.result, " ", date);
+	
+			};
+			
+			request.onerror = function(event) {
+				alert("Unable to add data\r\n"+name+" cannot be created or updated");
+				console.log("Unable to add data: "+name+" cannot be created or updated");
+			};
 		};
 	};
 };
 
 // Remove Audio storage, including ALL data
-function removeDataStorage (databaseName) {
+function clearDataStorage (databaseName, storeName) {
+	var db;
+	var request = indexedDB.open(databaseName, 1);
+	request.onerror = function(event) {
+	  alert("Use of IndexedDB not allowed");
+	};
+	request.onsuccess = function(event) {
+		db = this.result;
+		var request = db.transaction([storeName], "readwrite")
+			.objectStore(storeName)
+			.clear();
+		
+		request.onsuccess = function(event) {
+			console.log("Success: ", storeName);
+
+		};
+		
+		// If data already exist, update it
+		request.onerror = function(event) {
+			alert("Unable to clear "+storeName);
+			console.log("Unable to clear "+storeName);
+		};
+	};
+};
+	
+
+// Remove Audio storage, including ALL data
+function deleteDatabase (databaseName) {
 	var req = indexedDB.deleteDatabase(databaseName);
 	req.onsuccess = function () {
 	    console.log("Deleted database successfully");
@@ -540,4 +576,3 @@ function removeDataStorage (databaseName) {
 	    console.log("Couldn't delete database due to the operation being blocked");
 	};
 };
-	

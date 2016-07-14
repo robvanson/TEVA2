@@ -345,9 +345,9 @@ button {
 		var promptText = menu_tables[teva_settings.language]["SaveAudio"][1];
 		var fileName = prompt(promptText, menu_tables[teva_settings.language]["SaveAudio"][0]+".wav");
 		if (fileName && fileName.length > 0) {
-			addAudioBlob(fileName, blob);
+			if(! fileName.match("\.wav$"))fileName += ".wav";
+			addAudioBlob("Recordings", fileName, blob);
 			
-			// if(! fileName.match("\.wav$"))fileName += ".wav";
 	        // hiddenDownloadLink.download = fileName;
 	        // hiddenDownloadLink.href = URL.createObjectURL(blob);
 	        // hiddenDownloadLink.click();

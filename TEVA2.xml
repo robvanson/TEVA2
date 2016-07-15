@@ -208,7 +208,7 @@ button {
 		} else {
 			if (settingsWindow) settingsWindow.close();
 			settingsWindow = window.open('TEVA2_Settings.xml', '_blank');
-			localStorage.settingsWindow = "true";
+			localStorage.settingsWindow = JSON.stringify(true);
 		}
 	};
 	
@@ -245,13 +245,13 @@ button {
 	// Store settings
 	function store_TEVA_settings () {
 		for (x in teva_settings) {
-			localStorage[x] = teva_settings[x];
+			localStorage[x] = JSON.stringify(teva_settings[x]);
 		};
 	};
 		
 	function load_TEVA_settings () {
 		for (x in teva_settings) {
-			if (localStorage[x]) teva_settings[x] = localStorage[x];
+			if (localStorage[x]) teva_settings[x] = JSON.parse(localStorage[x]);
 		};
 		
 		set_mainpageLanguage (teva_settings.language);

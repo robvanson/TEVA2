@@ -1,5 +1,6 @@
 var userLanguage = (navigator.language) ? navigator.language : navigator.userLanguage;
 userLanguage = userLanguage.substr(0,2).toUpperCase();
+console.log("["+userLanguage+"]");
 
 
 function insert_and_update_options (labels) {

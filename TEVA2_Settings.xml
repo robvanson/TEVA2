@@ -119,7 +119,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 	
 	// Global settings
 	var teva_settings = {
-		settingsRead: "false",
+		settingsRead: false,
 		recSecs: 4,
 		language: "",
 		display: "Sound",
@@ -128,22 +128,22 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 	
 	// Store settings
 	function store_TEVA_settings () {
-		teva_settings.settingsRead = "true";
+		teva_settings.settingsRead = true;
 		for (x in teva_settings) {
-			localStorage[x] = teva_settings[x];
+			localStorage[x] = JSON.stringify(teva_settings[x]);
 		};
 	};
-	
+		
 	function load_TEVA_settings () {
 		for (x in teva_settings) {
-			if (localStorage[x]) teva_settings[x] = localStorage[x];
+			if (localStorage[x]) teva_settings[x] = JSON.parse(localStorage[x]);
 		};
 		
 		set_configLanguage (teva_settings.language);
 		setRecordingTime (teva_settings.recSecs);
 		setFrequency (teva_settings.frequency);
 
-		teva_settings.settingsRead = "true";
+		teva_settings.settingsRead = true;
 	};
 	
 	// Initialize to stored settings

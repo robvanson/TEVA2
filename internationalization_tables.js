@@ -57,7 +57,7 @@ function set_mainpageLanguage (language) {
 	
 	set_menuLanguage (language);
 	
-	localStorage.language = language;
+	valuelanguage =  JSON.stringify(language);
 };
 
 function set_menuLanguage (language) {
@@ -68,7 +68,7 @@ function set_menuLanguage (language) {
 			document.getElementById(x).title = labels[x][1];
 		};
 	};	
-	localStorage.language = language;
+	valuelanguage = language;
 };
 
 function set_configLanguage (language) {
@@ -93,7 +93,7 @@ function set_configLanguage (language) {
 		};
 	};
 	
-	localStorage.language = language;
+	valuelanguage = language;
 		};
 
 function change_mainpageLanguage () {

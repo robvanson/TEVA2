@@ -351,27 +351,77 @@ function calculate_Pitch (sound, sampleRate, fMin, fMax, dT) {
 	return pitchArray;
 };
 
+// PitchTier definition
+function Tier () {
+	// data
+	this.xmin = undefined;
+	this.xmax = undefined;
+	this.valuemin = Infinity;
+	this.valuemax = -Infinity;
+	this.dT = undefined;
+	this.size = undefined;
+	this.time = [];
+	this.values = [];
+	
+	// access functions
+	this.valueSeries = function () {return this.values; };
+	this.timeSeries = function () {return this.time; };
+	this.item = function (i) {
+		return {x: this.time [i], value: this.values [i]};
+	};
+	this.writeItem = function (i, item) {
+		if ( i < this.time.length ) {
+			this.time [i] = item.x;
+			if(item.x < this.xmin)this.xmin = item.x;
+			if(item.x > this.xmax)this.xmax = item.x;
+			this.values [i] = item.value;
+			if(item.value < this.valuemin) this.valuemin = item.value;
+			if(item.value > this.valuemax) this.valuemax = item.value;
+			return i;
+		} else {
+			console.log("Item "+i+" does not exist");
+			return false;
+		}
+	};
+	this.pushItem = function (item) {
+		this.time.push(item.x);
+		if(item.x < this.xmin)this.xmin = item.x;
+		if(item.x > this.xmax)this.xmax = item.x;
+		this.values.push(item.value);
+		if(item.value < this.valuemin) this.valuemin = item.value;
+		if(item.value > this.valuemax) this.valuemax = item.value;
+		this.size = this.time.length;
+		return this.size;
+	};
+};
+
 // Pitch tracking and candidate selection
 function toPitchTier (sound, sampleRate, fMin, fMax, dT) {
 	var pitchArray = calculate_Pitch (sound, sampleRate, fMin, fMax, dT);
 	var duration = sampleRate > 0 ? sound.length / sampleRate : 0;
 	var points = [];
+	var timeSeries = [];
+	var valueSeries = [];
 	
 	// Select the best pitch candidates using tracking etc.
+	var pitchTier = new Tier();
+	pitchTier.xmin = 0;
+	pitchTier.dT = dT;
 	for (var i=0; i < pitchArray.length; ++ i) {
-		points.push({x: pitchArray [i].x, value: pitchArray [i].values [0] });
+		pitchTier.pushItem ({x: pitchArray [i].x, value: pitchArray [i].values [0] })
 	};
-	var pitchTier = {xmin: 0, xmax: duration, dT: dT, points: {size: points.length, items: points}};
-
+	
 	return pitchTier;
 }
+
+
 
 // DTW between two pitchTiers
 function toDTW (pitchTier1, pitchTier2) {
 	var dtw = {distance: 0, path: [], matrix: undefined};
 	
-	var pitch1 = pitchTier1.points.items;
-	var pitch2 = pitchTier2.points.items;
+	var pitch1 = pitchTier1.valueSeries();
+	var pitch2 = pitchTier2.valueSeries();
 	
 	// Stub code giving fake results
 	dtw.distance = Math.random()*Math.max(pitch1.length, pitch2.length);
@@ -473,13 +523,14 @@ function get_percentiles (points, compare, remove, percentiles) {
 };
 
 // return the minim and maximum and their times
-function get_time_of_minmax (points) {
+function get_time_of_minmax (tier) {
 	var min = Infinity;
 	var max = -Infinity;
 	var tmin = tmax = 0;
-	for (var i = 0; i < points.length; ++i) {
-		var currentValue = points[i].value;
-		var currentTime = points[i].time;
+	for (var i = 0; i < tier.size; ++i) {
+		var item = tier.item(i);
+		var currentValue = item.value;
+		var currentTime = item.x;
 		if (currentValue < min) {
 			min = currentValue;
 			tmin = currentTime;

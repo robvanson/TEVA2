@@ -544,18 +544,17 @@ function get_time_of_minmax (tier) {
 };
 
 // Use IndexedDB as an Audio storage
-function saveCurrentAudioWindow (map, fileName) {
-console.log("saveCurrentAudioWindow ", map, fileName);
+function saveCurrentAudioWindow (dbName, map, fileName) {
 	if (!currentAudioWindow || currentAudioWindow.length <= 0 || ! recordedSampleRate || recordedSampleRate <= 0) return;
 	var blob = arrayToBlob (currentAudioWindow, 0, 0, recordedSampleRate);
 	if (map && map.length > 0 && fileName && fileName.length > 0) {
-		addAudioBlob(map, fileName, blob);
+		addAudioBlob(dbName, map, fileName, blob);
 	};
 };
 
 var indexedDBversion = 2;
-function getCurrentAudioWindow (map, name) {
-	var request = indexedDB.open(sgc3_settings.currentDataStore, indexedDBversion);
+function getCurrentAudioWindow (dbName, map, name) {
+	var request = indexedDB.open(dbName, indexedDBversion);
 	request.onerror = function(event) {
 	  alert("Use of IndexedDB not allowed");
 	};
@@ -582,7 +581,8 @@ function getCurrentAudioWindow (map, name) {
 		};
 		
 		// Store db name
-		if (sgc3_settings.audioDataBases.indexOf(sgc3_settings.currentDataStore) < 0) sgc3_settings.audioDataBases.push(sgc3_settings.currentDataStore);
+		// CORRECT!!!!
+		if (sgc3_settings && sgc3_settings.audioDataBases.indexOf(sgc3_settings.currentDataStore) < 0) sgc3_settings.audioDataBases.push(sgc3_settings.currentDataStore);
 	};
 	request.onerror = function(event) {
 		console.log("Error: ", event);
@@ -597,10 +597,10 @@ function getCurrentAudioWindow (map, name) {
 // Use IndexedDB as an Audio storage
 // Remove entries that have the same name
 // The structure is: Directory, Filename, Binary data
-function addAudioBlob(map, name, blob) {
+function addAudioBlob(dbName, map, name, blob) {
 	var date = new Date().toLocaleString();
 	var db;
-	var request = indexedDB.open(sgc3_settings.currentDataStore, indexedDBversion);
+	var request = indexedDB.open(dbName, indexedDBversion);
 	request.onerror = function(event) {
 	  alert("Use of IndexedDB not allowed");
 	};
@@ -622,7 +622,8 @@ function addAudioBlob(map, name, blob) {
 		};
 		
 		// Store db name
-		if (sgc3_settings.audioDataBases.indexOf(sgc3_settings.currentDataStore) < 0) sgc3_settings.audioDataBases.push(sgc3_settings.currentDataStore);
+		// CORRECT!!!!
+		if (sgc3_settings && sgc3_settings.audioDataBases.indexOf(sgc3_settings.currentDataStore) < 0) sgc3_settings.audioDataBases.push(sgc3_settings.currentDataStore);
 	};
 
 	request.onupgradeneeded = function(event) {

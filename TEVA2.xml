@@ -239,7 +239,7 @@ button {
 		recSecs: 4,
 		language: "",
 		display: "Sound",
-		frequency: 2
+		frequency: 2,
 	};
 	
 	// Store settings
@@ -346,7 +346,7 @@ button {
 		var fileName = prompt(promptText, menu_tables[teva_settings.language]["SaveAudio"][0]+".wav");
 		if (fileName && fileName.length > 0) {
 			if(! fileName.match("\.wav$"))fileName += ".wav";
-			addAudioBlob("Recordings", fileName, blob);
+			addAudioBlob("Audio", "Recordings", fileName, blob);
 			
 	        // hiddenDownloadLink.download = fileName;
 	        // hiddenDownloadLink.href = URL.createObjectURL(blob);

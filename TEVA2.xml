@@ -357,6 +357,28 @@ button {
         };
 	};
 	
+	var zipAudio = function (records) {
+		var zip = new JSZip();
+		var topMap = zip.folder(teva_settings.currentCollection);
+		
+		for(var i=0; i <  records.length; ++i) {
+			var filename = records[i].map+"/"+records[i].name;
+			var blob = records[i].audio;
+			topMap.file(filename, blob, {binary: true});
+		};
+		zip.generateAsync({type:"blob"})
+		.then(function(content) {
+	        hiddenDownloadLink.download = teva_settings.currentCollection+".zip";
+	        hiddenDownloadLink.href = URL.createObjectURL(content);
+	        hiddenDownloadLink.click();
+		});		
+	};
+	
+	function exportAudio () {
+		// Add files
+		getAllRecords (teva_settings.currentCollection, zipAudio);
+	};
+	
 	
 	if (navigator.mediaDevices.getUserMedia) {
 		navigator.mediaDevices.getUserMedia(mediaConstraints).then(successCallback).catch(errorCallback);
@@ -373,7 +395,7 @@ button {
 	<menu type="context" id="mymenu">
 		<menu id="AudioCollection" label="Archive" icon="TEVA.png" title="" >
 			<menuitem id="SaveAudio" label="Audio" onclick="saveAudio ();" icon="TEVA.png" title="" ></menuitem>
-			<menuitem id="Speaker" label="Speakers" onclick="alert('Save Speakers'); " icon="TEVA.png" title="" ></menuitem>
+			<menuitem id="Export" label="Export" onclick="exportAudio (); " icon="TEVA.png" title="" ></menuitem>
 		</menu>
 		<menu label="More things..." icon="TEVA.png">
 			<menuitem label="Settings" icon="TEVA.png" onclick="settingsWindow = window.open('TEVA2_Settings.xml', '_blank');"></menuitem>

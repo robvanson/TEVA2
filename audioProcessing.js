@@ -647,6 +647,31 @@ function addAudioBlob(collection, map, name, blob) {
 	};
 };
 
+// Iterate over all records
+function getAllRecords (collection, processRecords) {
+	var collectRecords = [];
+	var db;
+	var request = indexedDB.open(audioDatabaseName, indexedDBversion);
+	request.onerror = function(event) {
+	  alert("Use of IndexedDB not allowed");
+	};
+	request.onsuccess = function(event) {
+		db = this.result;
+		var objectStore = db.transaction("Recordings").objectStore("Recordings");
+		var index = objectStore.index("collection");
+		index.openCursor().onsuccess = function(event) {
+		  var cursor = event.target.result;
+		  if (cursor) {
+			collectRecords.push(cursor.value);
+		    cursor.continue();
+		  } else {
+			console.log(collectRecords);
+			processRecords(collectRecords);
+		  };
+		};
+	};
+};
+
 // Remove Audio storage, including ALL data
 function clearDataStorage (databaseName, storeName) {
 	var db;

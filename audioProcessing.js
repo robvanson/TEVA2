@@ -25,6 +25,7 @@ var recordedPitchTier;
 var windowStart = windowEnd = 0;
 var recordedSampleRate = 0;
 var currentAudioWindow = undefined;
+var audioDatabaseName = "Audio";
 
 var clearRecording = function () { 
 	recordedBlob = undefined;
@@ -544,17 +545,18 @@ function get_time_of_minmax (tier) {
 };
 
 // Use IndexedDB as an Audio storage
-function saveCurrentAudioWindow (dbName, map, fileName) {
+function saveCurrentAudioWindow (collection, map, fileName) {
+console.log("saveCurrentAudioWindow ", collection, map, fileName);
 	if (!currentAudioWindow || currentAudioWindow.length <= 0 || ! recordedSampleRate || recordedSampleRate <= 0) return;
 	var blob = arrayToBlob (currentAudioWindow, 0, 0, recordedSampleRate);
-	if (map && map.length > 0 && fileName && fileName.length > 0) {
-		addAudioBlob(dbName, map, fileName, blob);
+	if (collection && collection.length > 0 && map && map.length > 0 && fileName && fileName.length > 0) {
+		addAudioBlob(collection, map, fileName, blob);
 	};
 };
 
-var indexedDBversion = 2;
-function getCurrentAudioWindow (dbName, map, name) {
-	var request = indexedDB.open(dbName, indexedDBversion);
+var indexedDBversion = 1;
+function getCurrentAudioWindow (collection, map, name) {
+	var request = indexedDB.open(audioDatabaseName, indexedDBversion);
 	request.onerror = function(event) {
 	  alert("Use of IndexedDB not allowed");
 	};
@@ -562,7 +564,7 @@ function getCurrentAudioWindow (dbName, map, name) {
 		db = this.result;
 		var request = db.transaction(["Recordings"], "readwrite")
 			.objectStore("Recordings")
-			.get(map+"/"+name);
+			.get(collection+"/"+map+"/"+name);
 		
 		request.onsuccess = function(event) {
 			var record = this.result;
@@ -580,9 +582,6 @@ function getCurrentAudioWindow (dbName, map, name) {
 			console.log("Unable to ertrieve data: "+map+"/"+name+" cannot be found");
 		};
 		
-		// Store db name
-		// CORRECT!!!!
-		if (sgc3_settings && sgc3_settings.audioDataBases.indexOf(sgc3_settings.currentDataStore) < 0) sgc3_settings.audioDataBases.push(sgc3_settings.currentDataStore);
 	};
 	request.onerror = function(event) {
 		console.log("Error: ", event);
@@ -591,16 +590,18 @@ function getCurrentAudioWindow (dbName, map, name) {
 		var db = this.result;
 		// Create an objectStore to hold audio blobs.
 		var objectStore = db.createObjectStore("Recordings");
+		objectStore.createIndex("collection", "collection", { unique: false });
+		objectStore.createIndex("map", "map", { unique: false });
 	};
 };
 
 // Use IndexedDB as an Audio storage
 // Remove entries that have the same name
 // The structure is: Directory, Filename, Binary data
-function addAudioBlob(dbName, map, name, blob) {
+function addAudioBlob(collection, map, name, blob) {
 	var date = new Date().toLocaleString();
 	var db;
-	var request = indexedDB.open(dbName, indexedDBversion);
+	var request = indexedDB.open(audioDatabaseName, indexedDBversion);
 	request.onerror = function(event) {
 	  alert("Use of IndexedDB not allowed");
 	};
@@ -608,7 +609,7 @@ function addAudioBlob(dbName, map, name, blob) {
 		db = this.result;
 		var request = db.transaction(["Recordings"], "readwrite")
 			.objectStore("Recordings")
-			.put({ map: map, name: name, date: date, audio: blob }, map+"/"+name);
+			.put({ collection: collection, map: map, name: name, date: date, audio: blob }, collection+"/"+map+"/"+name);
 		
 		request.onsuccess = function(event) {
 			console.log("Success: ", this.result, " ", date);
@@ -617,34 +618,32 @@ function addAudioBlob(dbName, map, name, blob) {
 		
 		// If data already exist, update it
 		request.onerror = function(event) {
-			alert("Unable to add data\r\n"+name+" cannot be created or updated");
-			console.log("Unable to add data: "+name+" cannot be created or updated");
+			console.log("Unable to add data: "+collection+"/"+map+"/"+name+" cannot be created or updated");
 		};
 		
-		// Store db name
-		// CORRECT!!!!
-		if (sgc3_settings && sgc3_settings.audioDataBases.indexOf(sgc3_settings.currentDataStore) < 0) sgc3_settings.audioDataBases.push(sgc3_settings.currentDataStore);
 	};
 
 	request.onupgradeneeded = function(event) {
 		var db = this.result;
 		// Create an objectStore to hold audio blobs.
 		var objectStore = db.createObjectStore("Recordings");
+		objectStore.createIndex("collection", "collection", { unique: false });
+		objectStore.createIndex("map", "map", { unique: false });
 		// Use transaction oncomplete to make sure the objectStore creation is 
 		// finished before adding data into it.
 		objectStore.transaction.oncomplete = function(event) {
+			console.log("Success (add): ", this);
 			// Store values in the newly created objectStore.
 			var date = new Date().toLocaleString();
 			var customerObjectStore = db.transaction(["Recordings"], "readwrite").objectStore("Recordings");
-			customerObjectStore.add({ map: map, name: name, date: date, audio: blob }, map+"/"+name);
+			customerObjectStore.add({ collection: collection, map: map, name: name, date: date, audio: blob }, collection+"/"+map+"/"+name);
 			request.onsuccess = function(event) {
 				console.log("Success: ", this.result, " ", date);
 	
 			};
 			
 			request.onerror = function(event) {
-				alert("Unable to add data\r\n"+name+" cannot be created or updated");
-				console.log("Unable to add data: "+name+" cannot be created or updated");
+				console.log("Unable to add data: "+collection+"/"+map+"/"+name+" cannot be created or updated");
 			};
 		};
 	};
@@ -670,7 +669,6 @@ function clearDataStorage (databaseName, storeName) {
 		
 		// If data already exist, update it
 		request.onerror = function(event) {
-			alert("Unable to clear "+storeName);
 			console.log("Unable to clear "+storeName);
 		};
 	};

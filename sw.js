@@ -50,6 +50,7 @@ self.addEventListener('install', function(event) {
 	'fft.js/lib/complex.js',
 	'plotting.js',
 	'RecordRTC.min.js',
+	'jszip.min.js',
 	'xhtml-default.css'
   ];
 

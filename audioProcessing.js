@@ -556,7 +556,6 @@ function get_time_of_minmax (tier) {
 
 // Use IndexedDB as an Audio storage
 function saveCurrentAudioWindow (collection, map, fileName) {
-console.log("saveCurrentAudioWindow ", collection, map, fileName);
 	if (!currentAudioWindow || currentAudioWindow.length <= 0 || ! recordedSampleRate || recordedSampleRate <= 0) return;
 	var blob = arrayToBlob (currentAudioWindow, 0, 0, recordedSampleRate);
 	if (collection && collection.length > 0 && map && map.length > 0 && fileName && fileName.length > 0) {

@@ -17,6 +17,16 @@
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
+var mimeTypes = {
+	"wav": "audio/wav",
+	"mp3": "audio/mpeg",
+	"flac": "audio/flac",
+	"ogg": "audio/ogg",
+	"spx": "audio/ogg",
+	"aif": "audio/aifc",
+	"tsv": "text/tsv",
+	"csv": "text/csv"
+};
 // Global variables
 var recordedBlob, recordedBlobURL;
 var recordedArray;
@@ -554,7 +564,7 @@ console.log("saveCurrentAudioWindow ", collection, map, fileName);
 	};
 };
 
-var indexedDBversion = 1;
+var indexedDBversion = 2;
 function getCurrentAudioWindow (collection, map, name) {
 	var request = indexedDB.open(audioDatabaseName, indexedDBversion);
 	request.onerror = function(event) {
@@ -637,7 +647,7 @@ function addAudioBlob(collection, map, name, blob) {
 			var customerObjectStore = db.transaction(["Recordings"], "readwrite").objectStore("Recordings");
 			customerObjectStore.add({ collection: collection, map: map, name: name, date: date, audio: blob }, collection+"/"+map+"/"+name);
 			request.onsuccess = function(event) {
-	
+				console.log("Success: ", this.result, " ", date);
 			};
 			
 			request.onerror = function(event) {

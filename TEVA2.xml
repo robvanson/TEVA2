@@ -216,7 +216,17 @@ button {
 	// Open file
 	function openFile (files) {
 		// Only read the FIRST file
-		if (files[0]) {
+		if (files[0].name.match(/\.zip$/i)) {
+			var zipReader = new FileReader();
+			zipReader.onload = function(){
+				var zip = new JSZip();
+				zip.loadAsync(zipReader.result).then(unZipAudio);
+			};
+			zipReader.onerror = function(err) {
+				console.log("Open zip file",err);
+			};
+			zipReader.readAsArrayBuffer(files[0]);
+		} else if (files[0]) {
 			processAudio (files [0]);
 			
 		    play.disabled = false;
@@ -372,6 +382,30 @@ button {
 	        hiddenDownloadLink.href = URL.createObjectURL(content);
 	        hiddenDownloadLink.click();
 		});		
+	};
+	
+	var unZipAudio = function (zip) {
+		zip.forEach(function (relativePath, file){
+			if(relativePath.match(/\.(wav|flac|mp3|spx|ogg|tsv)$/ig)) {
+				var collection = teva_settings.currentCollection;
+				var map = "Recordings";
+				var name = "Audio.wav";
+				var path = relativePath.split("/");
+				name = path[path.length - 1];
+				if (path.length >= 3) {
+					collection = path[path.length - 3];
+				};
+				if (path.length >= 2) {
+					map = path[path.length - 2];
+				};
+				var type = mimeTypes[name.match(/[^\.]+$/g)[0]];
+				zip.file(relativePath).async("arraybuffer").then(function (data) {	
+					var blob = new Blob([data], {type : type});
+					addAudioBlob(collection, map, name, blob);
+				}, function(event){console.log("Error", event)});
+			};
+		});
+
 	};
 	
 	function exportAudio () {

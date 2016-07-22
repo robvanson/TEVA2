@@ -124,6 +124,8 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		language: "",
 		display: "Sound",
 		frequency: 2
+		audioDatabaseName: "TEVA audio",
+		currentCollection: "TEVA",
 	};
 	
 	// Store settings
@@ -142,6 +144,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		set_configLanguage (teva_settings.language);
 		setRecordingTime (teva_settings.recSecs);
 		setFrequency (teva_settings.frequency);
+		audioDatabaseName = teva_settings.audioDatabaseName;
 
 		teva_settings.settingsRead = true;
 	};

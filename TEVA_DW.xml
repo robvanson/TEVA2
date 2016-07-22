@@ -282,6 +282,8 @@ console.log(files);
 		language: "",
 		display: "Sound",
 		frequency: 2
+		audioDatabaseName: "TEVA audio",
+		currentCollection: "TEVA",
 	};
 	
 	// Store settings

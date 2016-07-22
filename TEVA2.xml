@@ -269,6 +269,7 @@ button {
 		
 		set_mainpageLanguage (teva_settings.language);
 		setDrawButtons (document.getElementById('Draw_'+teva_settings.display+'Button'));
+		audioDatabaseName = teva_settings.audioDatabaseName;
 	};
 	
 	// Initialize to stored settings
@@ -399,9 +400,10 @@ button {
 				name = path[path.length - 1];
 				if (path.length >= 3) {
 					collection = path[path.length - 3];
-				};
-				if (path.length >= 2) {
 					map = path[path.length - 2];
+				} else if (path.length >= 2) {
+					collection = path[path.length - 2];
+					map = "";
 				};
 				var type = mimeTypes[name.match(/[^\.]+$/g)[0]];
 				zip.file(relativePath).async("arraybuffer").then(function (data) {	
@@ -425,7 +427,9 @@ button {
 		navigator.webkitGetUserMedia(mediaConstraints, successCallback, errorCallback);
 	};
 	
-
+	// Initialize Audio storage
+	load_TEVA_settings ();
+	initializeDataStorage (teva_settings.currentCollection)	
 
 	//]]>	
 

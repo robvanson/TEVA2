@@ -699,7 +699,6 @@ function addAudioBlob(collection, map, name, blob) {
 		
 		request.onsuccess = function(event) {
 			console.log("Success: ", this.result, " ", date);
-
 		};
 		
 		// If data already exist, update it

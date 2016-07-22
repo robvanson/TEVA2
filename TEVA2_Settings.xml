@@ -48,6 +48,8 @@ button {
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
 <script type="text/javascript" src="internationalization_tables.js" ></script>   
+<script type="text/javascript" src="audioProcessing.js" ></script>   
+<script type="text/javascript" src="jszip.min.js" defer="true" ></script> 
 </head>
 <body onfocus="load_TEVA_settings (); " onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); localStorage.removeItem('TEVA_settingsWindow'); if(creditsWindow)creditsWindow.close(); " >
 <!--
@@ -97,6 +99,15 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
 	<div title=""><button type="button" style="color: black; bottom: 62%; left: 85%; height: 14%; width: 10%" id="CreditsButton" onclick="creditsWindow = window.open('TEVA2_Credits.xml', '_blank');" ><span id="Credits" >---</span></button></div>
 
+	<input type="file" id="HiddenImportAudio" name="ImportAudio" style="display:none" onchange='importAudio (this.files); this.value="";' title="OpenWord" />
+	<div title=""><button type="button" style="color: black; bottom: 5%; right: 33%; height: 8%; width: 8% " id="LocalImportAudio" ><span id="ImportAudio" style="font-size: 2vmin;" >Import</span></button></div>
+	<div title=""><button type="button" style="color: black; bottom: 5%; right: 23%; height: 8%; width: 8% " id="ExportAudioButton" ><span id="ExportAudio" style="font-size: 2vmin;" >Export</span></button></div>
+	
+	<div style="position: fixed; color: black; bottom: 10%; right: 5%; height: 8%; width: 17%; font: 'Helvetica'; font-size: 4vmin; text-align: center " id="AudioNameCaption">---</div>	
+	<select id="AudioName" style="position: fixed; color: black; bottom: 5%; right: 5%; height: 8%; width: 17%; font: 'Helvetica'; font-size: 3vmin; background-color: rgb(220,220,220); " onchange="store_SGC3_settings (); " >
+		<option value="---" ><span id="NewCollection" title="" >New</span></option>
+	</select> 
+
     <script type="text/javascript">
 	//<![CDATA[
 	// Install the service worker for offline use
@@ -116,6 +127,15 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 	
 	var localRecordingTime = document.getElementById('RecordingTime');
 	var localFrequency = document.getElementById('Frequency');
+
+	var hiddenDownloadLink = document.getElementById('HiddenDownloadLink');
+	var exportAudioButton = document.getElementById('ExportAudioButton');
+	var openAudioButton = document.getElementById('LocalOpenAudio');
+	var hiddenImportAudio = document.getElementById('HiddenImportAudio');
+	var importAudioButton = document.getElementById('LocalImportAudio');
+	importAudioButton.onclick = function () {
+	    document.getElementById('HiddenImportAudio').click();
+	};
 	
 	// Global settings
 	var teva_settings = {
@@ -123,7 +143,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		recSecs: 4,
 		language: "",
 		display: "Sound",
-		frequency: 2
+		frequency: 2,
 		audioDatabaseName: "TEVA audio",
 		currentCollection: "TEVA",
 	};
@@ -145,6 +165,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		setRecordingTime (teva_settings.recSecs);
 		setFrequency (teva_settings.frequency);
 		audioDatabaseName = teva_settings.audioDatabaseName;
+		add_collections_names_to_select ();
 
 		teva_settings.settingsRead = true;
 	};
@@ -190,6 +211,106 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 				document.getElementById("Frequency").selectedIndex = x;
 			};
 		};
+	};
+
+
+	// Construct a list of Collections
+	function addCollectionsToSelect (records) {
+		var collectionList = [];
+		if(teva_settings.currentCollection && teva_settings.currentCollection.length > 0) collectionList.push(teva_settings.currentCollection);
+		for (var i = 0; i<records.length; ++ i) {
+			var collection = records[i].collection;
+			if (collectionList.indexOf(collection) < 0) collectionList.push(collection);
+		};
+		collectionList.sort();
+		// First, remove old entries
+		var selector = document.getElementById('AudioName');
+		var numOptions = selector.options.length
+		for(var i = numOptions - 1; i > 0; --i) {
+			selector.remove(i);
+		};
+		// Add new entries
+		for(var i=0; i < collectionList.length; ++i) {
+			var lastOption = selector.options.length - 1;
+			var collectionTitle = collectionList[i];
+			var newOption = selector.options[0].cloneNode(true);
+			newOption.value = collectionTitle;
+			newOption.text = collectionTitle;
+			selector.add(newOption);
+		};
+		
+	};
+	
+	function add_collections_names_to_select () {
+		// Get the names of the collections
+		getAllRecords (undefined, addCollectionsToSelect);
+	};
+	
+	// Export audio
+	exportAudioButton.onclick = function (){
+		if (hiddenDownloadLink.href != "") URL.revokeObjectURL(hiddenDownloadLink.href);
+		getAllRecords (teva_settings.currentCollection, zipAudio);
+	};
+	
+	var zipAudio = function (records) {
+		var zip = new JSZip();
+		// Create a file listing (also to force the whole path into the zip archive)
+		var text = "";
+		for (var i = 0; i<records.length; ++ i) {
+			text += records[i].collection+"/"+records[i].map+"/"+records[i].name+"\t"+records[i].audio.size+"\t"+records[i].date+"\n";
+		};
+		zip.file("README.txt", text, {text: true});
+		
+		for(var i=0; i <  records.length; ++i) {
+			if (records[i].collection == teva_settings.currentCollection) {
+				var filename = records[i].collection+"/"+records[i].map+"/"+records[i].name;
+				var blob = records[i].audio;
+				zip.file(filename, blob, {binary: true});
+			};
+		};
+		zip.generateAsync({type:"blob"})
+		.then(function(content) {
+	        hiddenDownloadLink.download = teva_settings.currentCollection+".zip";
+	        hiddenDownloadLink.href = URL.createObjectURL(content);
+	        hiddenDownloadLink.click();
+		});		
+	};	
+	
+	// Import audio
+	function importAudio (files) {
+		var zipReader = new FileReader();
+		zipReader.onload = function(){
+			var zip = new JSZip();
+			zip.loadAsync(zipReader.result).then(unZipAudio);
+		};
+		zipReader.onerror = function(err) {
+			console.log("Open zip file",err);
+		};
+		zipReader.readAsArrayBuffer(files[0]);
+	};
+	
+	var unZipAudio = function (zip) {
+		zip.forEach(function (relativePath, file){
+			if(relativePath.match(/\.(wav|flac|mp3|spx|ogg|tsv)$/ig)) {
+				var collection = teva_settings.currentCollection;
+				var map = "Recordings";
+				var name = "Audio.wav";
+				var path = relativePath.split("/");
+				name = path[path.length - 1];
+				if (path.length >= 3) {
+					collection = path[path.length - 3];
+				};
+				if (path.length >= 2) {
+					map = path[path.length - 2];
+				};
+				var type = mimeTypes[name.match(/[^\.]+$/g)[0]];
+				zip.file(relativePath).async("arraybuffer").then(function (data) {	
+					var blob = new Blob([data], {type : type});
+					addAudioBlob(collection, map, name, blob);
+				}, function(event){console.log("Error", event)});
+			};
+		});
+
 	};
 	
 	//]]>	

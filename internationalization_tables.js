@@ -219,6 +219,9 @@ var config_tables = {
 		Credits: ["About", "Information about NKI TE-VOICE ANALYSIS tool"],
 		AudioCollection: ["Archive", "Recording and collection of audio"],
 		SaveAudio: ["Audio", "Save current audio selection to file"],
+		ExportAudio: ["Export", "Export stored recordings"],
+		ImportAudio: ["Import", "Import recordings to storage"],
+		NewCollection: ["New", "Name of new collection of recordings"],
 		},
 			
 	JA: {
@@ -226,6 +229,9 @@ var config_tables = {
 		Credits: ["TEVAについて", "オランダがんセンター音声分析ツールについて"],
 		AudioCollection: ["アーカイブ", "オーディオの録音とコレクション"],
 		SaveAudio: ["オーディオ", "現在選択されているオーディオをファイルに保存"],
+		ExportAudio: ["Export", "Export stored recordings"],
+		ImportAudio: ["Import", "Import recordings to storage"],
+		NewCollection: ["New", "Name of new collection of recordings"],
 		},
 		
 	DE: {
@@ -233,12 +239,18 @@ var config_tables = {
 		Credits: ["über", "Informationen zur NKI TE-VOICE ANALYSIS tool"],
 		AudioCollection: ["Aufbewahren", "Aufnahme un aufbewahren von audio"],
 		SaveAudio: ["Audio", "Audiovenster in einer Datei schreiben"],
+		ExportAudio: ["Exportiere", "Exportiere gespeicherte Aufnahmen"],
+		ImportAudio: ["Importiere", "Importiere Aufnahmen"],
+		NewCollection: ["Neu", "Name einer neuen Collection von Aufnahmen"],
 		},		
 	NL: {
 		RecordingTimePost: ["(sec)", "Opnametijd in seconden"],
 		Credits: ["Over", "Informatie over NKI TE-VOICE ANALYSIS tool"],
 		AudioCollection: ["Bewaren", "Opnemen en bewaren van audio"],
 		SaveAudio: ["Audio", "Bewaar huidige selectie van geluid naar bestand"],
+		ExportAudio: ["Exporteer", "Exproteer de opgeslagen opnamen"],
+		ImportAudio: ["Importeer", "Importeer opnamen naar opslag"],
+		NewCollection: ["Nieuw", "Naam van nieuwe opnamengroep"],
 		}
 };
 
@@ -254,6 +266,7 @@ var selector_tables = {
 		Frequency_3k: ["3kHz", "Display up to 3 kHz"],
 		Frequency_2k: ["2kHz", "Display up to 2 kHz"],
 		Frequency_1k: ["1kHz", "Display up to 1 kHz"],
+		AudioName: ["Archive", "Name of the active recording session"],
 		},
 	JA: {
 		Language: ["言語", "表示言語を設定します。"],
@@ -265,6 +278,7 @@ var selector_tables = {
 		Frequency_3k: ["3kHz", "3 kHzまでを表示する"],
 		Frequency_2k: ["2kHz", "2 kHzまでを表示する"],
 		Frequency_1k: ["1kHz", "1 kHzまでを表示する"],
+		AudioName: ["アーカイブ", "現在の録音セッションの名前です。"],
 		},
 	DE: {
 		Language: ["Sprache", "Wähle die gewünschte Sprache"],
@@ -276,6 +290,7 @@ var selector_tables = {
 		Frequency_3k: ["3kHz", "Wiedergabe bis 3 kHz"],
 		Frequency_2k: ["2kHz", "Wiedergabe bis 2 kHz"],
 		Frequency_1k: ["1kHz", "Wiedergabe bis 1 kHz"],
+		AudioName: ["Aufbewahren", "Name der aktieven Aufzeichnungssitzung"],
 		},
 	NL: {
 		Language: ["Taal", "Selecteer de gewenste taal"],
@@ -287,6 +302,7 @@ var selector_tables = {
 		Frequency_3k: ["3kHz", "Ga tot 3 kHz"],
 		Frequency_2k: ["2kHz", "Ga tot 2 kHz"],
 		Frequency_1k: ["1kHz", "Ga tot 1 kHz"],
+		AudioName: ["Bewaren", "Naam van de actieve opnamesessie"],
 		},
 }
 

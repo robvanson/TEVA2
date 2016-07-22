@@ -99,13 +99,14 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
 	<div title=""><button type="button" style="color: black; bottom: 62%; left: 85%; height: 14%; width: 10%" id="CreditsButton" onclick="creditsWindow = window.open('TEVA2_Credits.xml', '_blank');" ><span id="Credits" >---</span></button></div>
 
+	<a href="" id="HiddenDownloadLink" name="Download" style="display:none" title="Download" ></a>
 	<input type="file" id="HiddenImportAudio" name="ImportAudio" style="display:none" onchange='importAudio (this.files); this.value="";' title="OpenWord" />
 	<div title=""><button type="button" style="color: black; bottom: 5%; right: 33%; height: 8%; width: 8% " id="LocalImportAudio" ><span id="ImportAudio" style="font-size: 2vmin;" >Import</span></button></div>
 	<div title=""><button type="button" style="color: black; bottom: 5%; right: 23%; height: 8%; width: 8% " id="ExportAudioButton" ><span id="ExportAudio" style="font-size: 2vmin;" >Export</span></button></div>
 	
 	<div style="position: fixed; color: black; bottom: 10%; right: 5%; height: 8%; width: 17%; font: 'Helvetica'; font-size: 4vmin; text-align: center " id="AudioNameCaption">---</div>	
-	<select id="AudioName" style="position: fixed; color: black; bottom: 5%; right: 5%; height: 8%; width: 17%; font: 'Helvetica'; font-size: 3vmin; background-color: rgb(220,220,220); " onchange="store_SGC3_settings (); " >
-		<option value="---" ><span id="NewCollection" title="" >New</span></option>
+	<select id="AudioName" style="position: fixed; color: black; bottom: 5%; right: 5%; height: 8%; width: 17%; font: 'Helvetica'; font-size: 3vmin; background-color: rgb(220,220,220); " onchange="changeCollection(this.selectedIndex); store_teva_settings (); " >
+		<option value="NewCollection" ><span id="NewCollection" title="" >New</span></option>
 	</select> 
 
     <script type="text/javascript">
@@ -215,6 +216,19 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
 
 	// Construct a list of Collections
+	function changeCollection(index) {
+		var selector = document.getElementById('AudioName');
+		var value = selector.options[index].value;
+		if (index == 0) {
+			var promptText = config_tables[teva_settings.language]["NewCollection"][1];
+			var collectionName = prompt(promptText, teva_settings.currentCollection);
+			if (collectionName && collectionName.length > 0) teva_settings.currentCollection = collectionName;
+		} else {
+			teva_settings.currentCollection = value;
+		};
+		getCurrentMetaData (teva_settings.currentCollection);
+	};
+		
 	function addCollectionsToSelect (records) {
 		var collectionList = [];
 		if(teva_settings.currentCollection && teva_settings.currentCollection.length > 0) collectionList.push(teva_settings.currentCollection);
@@ -230,6 +244,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 			selector.remove(i);
 		};
 		// Add new entries
+		var selectedIndex = 1;
 		for(var i=0; i < collectionList.length; ++i) {
 			var lastOption = selector.options.length - 1;
 			var collectionTitle = collectionList[i];
@@ -237,8 +252,9 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 			newOption.value = collectionTitle;
 			newOption.text = collectionTitle;
 			selector.add(newOption);
+			if (collectionTitle == teva_settings.currentCollection) selectedIndex = selector.options.length - 1;
 		};
-		
+		selector.selectedIndex = selectedIndex;
 	};
 	
 	function add_collections_names_to_select () {

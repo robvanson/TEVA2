@@ -89,7 +89,7 @@ function decodedDone(decoded) {
 	if (!retrievedData) sessionStorage["recorded"] = "true";
 	processRecordedSound ();
 	sessionStorage["recorded"] = "false";
-	// Note this one should be switched AFTER processRecordedSound ahs been called.
+	// Note this one should be switched AFTER processRecordedSound has been called.
 	retrievedData = false;
 };
 
@@ -603,7 +603,7 @@ function getCurrentAudioWindow (collection, map, name) {
 	};
 };
 
-function getCurrentMetaData (collection) {
+function getCurrentMetaData (collection, processData) {
 	var request = indexedDB.open(audioDatabaseName, indexedDBversion);
 	request.onerror = function(event) {
 	  alert("Use of IndexedDB not allowed");
@@ -618,9 +618,10 @@ function getCurrentMetaData (collection) {
 			var record = this.result;
 			if(record) {
 				if(record.audio){
-					// processAudio is resolved asynchronously, reset retrievedData when it is finished
-					retrievedData = true;
-					// DO SOMETHING;
+					// This is a text blob
+					if (processData) {
+						var objectList = csvblob2objectlist(record.audio, processData);
+					};
 				};
 			} else {
 				var date = new Date().toLocaleString();
@@ -699,6 +700,7 @@ function addAudioBlob(collection, map, name, blob) {
 		
 		request.onsuccess = function(event) {
 			console.log("Success: ", this.result, " ", date);
+
 		};
 		
 		// If data already exist, update it
@@ -720,6 +722,15 @@ function addAudioBlob(collection, map, name, blob) {
 			// Store values in the newly created objectStore.
 			var date = new Date().toLocaleString();
 			var customerObjectStore = db.transaction(["Recordings"], "readwrite").objectStore("Recordings");
+			
+			var request2 = customerObjectStore.add({ collection: collection, map: map, name: name, date: date, audio: blob }, collection+"/"+map+"/"+name);
+			request2.onsuccess = function(event) {
+				console.log("Success: ", this.result, " ", date);
+			};
+			
+			request2.onerror = function(event) {
+				console.log("Unable to add data: "+collection+"/"+map+"/"+name+" cannot be created or updated");
+			};
 
 			var tsvBlob = new Blob([''], { type: 'text/tsv', endings: 'native' });
 			var request1 = customerObjectStore.add({ collection: collection, map: "", name: collection+".tsv", date: date, audio: tsvBlob }, collection+"/"+collection+".tsv");
@@ -730,17 +741,16 @@ function addAudioBlob(collection, map, name, blob) {
 			request1.onerror = function(event) {
 				console.log("Unable to add data: "+collection+"/"+map+"/"+name+" cannot be created or updated");
 			};
-			
-			var request2 = customerObjectStore.add({ collection: collection, map: map, name: name, date: date, audio: blob }, collection+"/"+map+"/"+name);
-			request2.onsuccess = function(event) {
-				console.log("Success: ", this.result, " ", date);
-			};
-			
-			request2.onerror = function(event) {
-				console.log("Unable to add data: "+collection+"/"+map+"/"+name+" cannot be created or updated");
-			};
 		};
 	};
+};
+
+// CSV is a list of objects, each with the same properties
+function writeCSV(collection, csvList) {
+	var map = "";
+	var name = collection+".tsv";
+	var blob = objectlist2csvblob (csvList);
+	addAudioBlob(collection, map, name, blob);
 };
 
 // Iterate over all records
@@ -776,7 +786,43 @@ function getAllRecords (collection, processRecords) {
 
 // Initialize Audio storage
 function initializeDataStorage (collection) {
-	getCurrentMetaData (collection);
+	getCurrentMetaData (collection, false);
+};
+
+// Remove a collection
+function removeCollection (collection, complete) {
+	var db;
+	var request = indexedDB.open(audioDatabaseName, indexedDBversion);
+	request.onerror = function(event) {
+	  alert("Use of IndexedDB not allowed");
+	};
+	request.onsuccess = function(event) {
+		db = this.result;
+		var objectStore = db.transaction("Recordings", "readwrite").objectStore("Recordings");
+		var index = objectStore.index("collection");
+		index.openCursor().onsuccess = function(event) {
+		  var cursor = event.target.result;
+		  if (cursor) {
+			if (!collection || cursor.value.collection == collection) {
+				var value = cursor.value;
+		        var request = cursor.delete();
+		        request.onsuccess = function() {
+					console.log('Delete', value);
+				};
+			} else {
+				if(complete)complete(collection);
+			};
+		    cursor.continue();
+		  };
+		};
+	};
+
+	request.onupgradeneeded = function(event) {
+		var db = this.result;
+		// Create an objectStore to hold audio blobs.
+		initializeObjectStore (db, collection)
+	};
+	
 };
 
 // Remove Audio storage, including ALL data
@@ -817,4 +863,43 @@ function deleteDatabase (databaseName) {
 	req.onblocked = function () {
 	    console.log("Couldn't delete database due to the operation being blocked");
 	};
+};
+
+
+// Convert a list of objects to a csv blob
+function objectlist2csvblob (csvList) {
+	var headerList = Object.keys(csvList[0]);
+	var text = headerList.join("\t") + "\n";
+	for (var i=0; i<csvList.length; ++i) {
+		var valueList = [];
+		for (var p=0; p<headerList.length; ++p) {
+			valueList.push(csvList[i][headerList[p]]);
+		};
+		text += valueList.join("\t") + "\n";
+	};
+	var blob = new Blob ([text], {type: 'text/tsv', endings: 'native'});
+	return blob;
+};
+
+function csvblob2objectlist (blob, handleList) {
+	if(blob.type != "text/tsv") return undefined;
+	var reader = new FileReader();
+	reader.addEventListener("loadend", function() {
+	   // reader.result contains the contents of blob as a typed array
+		var lines = reader.result.split(/\r\n|\n/);
+		var columnNames = lines[0].split(/\t/);
+		var objectList = [];
+		for (var i=1; i<lines.length; ++i) {
+			if(lines[i].match(/\t/)) {
+				var values = lines[i].split(/\t/);
+				var record = {};
+				for(var p=0; p<columnNames.length; ++p) {
+					record[columnNames[p]] = values[p];
+				};
+				objectList.push(record);
+			};
+		};
+		handleList(objectList);
+	});
+	reader.readAsText(blob);	
 };

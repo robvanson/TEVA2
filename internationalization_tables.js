@@ -222,6 +222,8 @@ var config_tables = {
 		ExportAudio: ["Export", "Export stored recordings"],
 		ImportAudio: ["Import", "Import recordings to storage"],
 		NewCollection: ["New", "Name of new collection of recordings"],
+		DeleteAudioConfirm: ["Are you sure?", "Are you sure you want to proceed?"],
+		DeleteAudio: ["Delete", "Delete recordings in storage"],
 		},
 			
 	JA: {
@@ -232,6 +234,8 @@ var config_tables = {
 		ExportAudio: ["Export", "Export stored recordings"],
 		ImportAudio: ["Import", "Import recordings to storage"],
 		NewCollection: ["New", "Name of new collection of recordings"],
+		DeleteAudioConfirm: ["削除確認", "本当に削除しますか？"],
+		DeleteAudio: ["Delete", "Delete recordings in storage"],
 		},
 		
 	DE: {
@@ -242,6 +246,8 @@ var config_tables = {
 		ExportAudio: ["Exportiere", "Exportiere gespeicherte Aufnahmen"],
 		ImportAudio: ["Importiere", "Importiere Aufnahmen"],
 		NewCollection: ["Neu", "Name einer neuen Collection von Aufnahmen"],
+		DeleteAudioConfirm: ["Sicher?", "Sind Sie sicher?"],
+		DeleteAudio: ["Lössche", "Lössche Aufnahmen"],
 		},		
 	NL: {
 		RecordingTimePost: ["(sec)", "Opnametijd in seconden"],
@@ -251,6 +257,8 @@ var config_tables = {
 		ExportAudio: ["Exporteer", "Exproteer de opgeslagen opnamen"],
 		ImportAudio: ["Importeer", "Importeer opnamen naar opslag"],
 		NewCollection: ["Nieuw", "Naam van nieuwe opnamengroep"],
+		DeleteAudioConfirm: ["Heel zeker?", "Bent u zeker dat u door wilt gaan?"],
+		DeleteAudio: ["Verwijder", "Verwijder opnamen"],
 		}
 };
 

@@ -101,6 +101,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
 	<a href="" id="HiddenDownloadLink" name="Download" style="display:none" title="Download" ></a>
 	<input type="file" id="HiddenImportAudio" name="ImportAudio" style="display:none" onchange='importAudio (this.files); this.value="";' title="OpenWord" />
+	<div title=""><button type="button" style="color: black; bottom: 5%; right: 43%; height: 8%; width: 8% " id="LocalDeleteAudio" ><span id="DeleteAudio" style="font-size: 2vmin;" >Delete</span></button></div>
 	<div title=""><button type="button" style="color: black; bottom: 5%; right: 33%; height: 8%; width: 8% " id="LocalImportAudio" ><span id="ImportAudio" style="font-size: 2vmin;" >Import</span></button></div>
 	<div title=""><button type="button" style="color: black; bottom: 5%; right: 23%; height: 8%; width: 8% " id="ExportAudioButton" ><span id="ExportAudio" style="font-size: 2vmin;" >Export</span></button></div>
 	
@@ -132,10 +133,25 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 	var hiddenDownloadLink = document.getElementById('HiddenDownloadLink');
 	var exportAudioButton = document.getElementById('ExportAudioButton');
 	var openAudioButton = document.getElementById('LocalOpenAudio');
+	var deleteAudioButton = document.getElementById('LocalDeleteAudio');
 	var hiddenImportAudio = document.getElementById('HiddenImportAudio');
 	var importAudioButton = document.getElementById('LocalImportAudio');
 	importAudioButton.onclick = function () {
 	    document.getElementById('HiddenImportAudio').click();
+	};
+	// Remove collection after confirm
+	deleteAudioButton.onclick = function () {
+		var confirmText = config_tables[teva_settings.language].DeleteAudioConfirm[1];
+		var canBeDeleted = confirm(confirmText);
+		if (canBeDeleted) {
+			// Note that the currentCollection is reset AFTER the removal
+			removeCollection (teva_settings.currentCollection, function () {
+				localStorage.TEVA_currentCollection = JSON.stringify("TEVA");
+				load_TEVA_settings ();
+			});
+			teva_settings.currentCollection = "TEVA";
+			load_TEVA_settings ();
+		}
 	};
 	
 	// Global settings
@@ -215,7 +231,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 	};
 
 
-	// Construct a list of Collections
+	// New Collection
 	function changeCollection(index) {
 		var selector = document.getElementById('AudioName');
 		var value = selector.options[index].value;
@@ -226,9 +242,10 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		} else {
 			teva_settings.currentCollection = value;
 		};
-		getCurrentMetaData (teva_settings.currentCollection);
+		getCurrentMetaData (teva_settings.currentCollection, false);
 	};
 		
+	// Construct a list of Collections
 	function addCollectionsToSelect (records) {
 		var collectionList = [];
 		if(teva_settings.currentCollection && teva_settings.currentCollection.length > 0) collectionList.push(teva_settings.currentCollection);

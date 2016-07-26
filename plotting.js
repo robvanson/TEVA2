@@ -70,7 +70,7 @@ function display_recording_level (id, typedArray) {
 		};
 	};
 	var power = sumSquare / nSamples;
-	var dBpower = (power > 0) ? maxPowerRecorded + Math.log10(power) * 10 : 0;
+	var dBpower = (power > 0) ? maxPowerRecorded + 2*Math.log10(power) * 10 : 0;
 	var recordingLight = document.getElementById(id);
 	var currentWidth = 100*recordingLight.clientWidth/window.innerWidth;
 	var currentHeight = 100*recordingLight.clientHeight/window.innerHeight;
@@ -261,14 +261,9 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, windowStart, windo
 	
 	if (! pitch) {
 		pitchTier = toPitchTier (typedArray, sampleRate, fMin, fMax, dT);
-		pitch = pitchTier.points.items;
 	};
-	maxPitch = 0;
-	var pitchArray = [];
-	for (var i = 0; i < pitch.length; ++i) {
-		if (pitch[i].value > maxPitch) maxPitch = pitch[i].value
-		pitchArray[i] = pitch[i].value;
-	};
+	maxPitch = pitchTier.valuemax;
+	var pitchArray = pitchTier.valueSeries();
 	verMax = Math.ceil(maxPitch * 1.5 / 10) * 10;
 	
 	// Set parameters
@@ -296,13 +291,14 @@ function draw_pitch (canvasId, color, typedArray, sampleRate, windowStart, windo
 	var vScale = plotHeight / verMax;
 	var resetLine = 0;
 	
-	drawingCtx.moveTo(horMargin, plotHeight - pitch[0].value * vScale);
+	drawingCtx.moveTo(horMargin, plotHeight - pitchArray[0] * vScale);
 	var minFrame = Math.floor(horMin/recordedDuration*numFrames);
 	var maxFrame = Math.ceil(horMax/recordedDuration*numFrames);
 	if (maxFrame > pitch.length) maxFrame = pitch.length;
 	for(var i = minFrame; i < maxFrame; ++i) {
-		var currentTime = pitch[i].x - horMin;
-		var currentValue = pitch[i].value;
+		var item = pitchTier.item(i);
+		var currentTime = item.x - horMin;
+		var currentValue = item.value;
 		if (currentValue > 0) {
 			if (resetLine) {
 				drawingCtx.moveTo(horMargin + currentTime * hScale , plotHeight - currentValue * vScale);

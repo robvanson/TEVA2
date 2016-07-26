@@ -4,7 +4,7 @@
     }
    },
    "manifest_version": 2,
-  "version": "1.002",  
+  "version": "1.003",  
   "short_name": "TEVA 2",
   "name": "TEVA 2",
   "icons": [
@@ -22,5 +22,8 @@
       "TEVA2.xml",
       "TEVA2_Settings.xml"
     ]
-	}
+	},
+  "permissions": [
+  "fileSystem"
+  ]
 }

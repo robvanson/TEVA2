@@ -46,6 +46,7 @@ button {
 <script type="text/javascript" src="fft.js/lib/complex.js" ></script>   
 <script type="text/javascript" src="fft.js/lib/real.js" ></script>   
 <script type="text/javascript" src="RecordRTC.min.js" defer="true" ></script>
+<script type="text/javascript" src="jszip.min.js" defer="true" ></script> 
 </head>
 <body  onload="if(window.speechSynthesis)window.speechSynthesis.getVoices();" onfocus="load_TEVA_settings ();" onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); if(settingsWindow)settingsWindow.close(); "  contextmenu="mymenu" >
 	<div style="color: gray; position: fixed; top: 5%; left: 2%; font-size: 15vmin; text-align: center; " id="RecordingLight">&#9679;</div>
@@ -187,12 +188,12 @@ button {
 
 	// Settings button
 	settingsButton.onclick = function () {
-		if (localStorage.settingsWindow && settingsWindow) {
+		if (localStorage.TEVA_settingsWindow && settingsWindow) {
 			settingsWindow.focus();
 		} else {
 			if (settingsWindow) settingsWindow.close();
 			settingsWindow = window.open('TEVA2_Settings.xml', '_blank');
-			localStorage.settingsWindow = "true";
+			localStorage.TEVA_settingsWindow = JSON.stringify(true);
 		}
 	};
 	
@@ -281,18 +282,20 @@ console.log(files);
 		language: "",
 		display: "Sound",
 		frequency: 2
+		audioDatabaseName: "TEVA audio",
+		currentCollection: "TEVA",
 	};
 	
 	// Store settings
 	function store_TEVA_settings () {
 		for (x in teva_settings) {
-			localStorage[x] = teva_settings[x];
+			localStorage["TEVA_"+x] = teva_settings[x];
 		};
 	};
 		
 	function load_TEVA_settings () {
 		for (x in teva_settings) {
-			if (localStorage[x]) teva_settings[x] = localStorage[x];
+			if (localStorage["TEVA_"+x]) teva_settings[x] = localStorage["TEVA_"+x];
 		};
 		
 		set_mainpageLanguage (teva_settings.language);

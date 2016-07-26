@@ -54,7 +54,20 @@ function set_mainpageLanguage (language) {
 		};
 	};
 	
-	localStorage.language = language;
+	set_menuLanguage (language);
+	
+	valuelanguage =  JSON.stringify(language);
+};
+
+function set_menuLanguage (language) {
+	var labels = menu_tables[language];
+	for(x in labels) {
+		if(document.getElementById(x)) {
+			document.getElementById(x).label = labels[x][0];
+			document.getElementById(x).title = labels[x][1];
+		};
+	};	
+	valuelanguage = language;
 };
 
 function set_configLanguage (language) {
@@ -79,7 +92,7 @@ function set_configLanguage (language) {
 		};
 	};
 	
-	localStorage.language = language;
+	valuelanguage = language;
 		};
 
 function change_mainpageLanguage () {
@@ -204,20 +217,48 @@ var config_tables = {
 	EN: {
 		RecordingTimePost: ["(sec)", "Time of recording in seconds"],
 		Credits: ["About", "Information about NKI TE-VOICE ANALYSIS tool"],
+		AudioCollection: ["Archive", "Recording and collection of audio"],
+		SaveAudio: ["Audio", "Save current audio selection to file"],
+		ExportAudio: ["Export", "Export stored recordings"],
+		ImportAudio: ["Import", "Import recordings to storage"],
+		NewCollection: ["New", "Name of new collection of recordings"],
+		DeleteAudioConfirm: ["Are you sure?", "Are you sure you want to proceed?"],
+		DeleteAudio: ["Delete", "Delete recordings in storage"],
 		},
 			
 	JA: {
 		RecordingTimePost: ["（秒）", "録音時間の秒数"],
 		Credits: ["TEVAについて", "オランダがんセンター音声分析ツールについて"],
+		AudioCollection: ["アーカイブ", "オーディオの録音とコレクション"],
+		SaveAudio: ["オーディオ", "現在選択されているオーディオをファイルに保存"],
+		ExportAudio: ["Export", "Export stored recordings"],
+		ImportAudio: ["Import", "Import recordings to storage"],
+		NewCollection: ["New", "Name of new collection of recordings"],
+		DeleteAudioConfirm: ["削除確認", "本当に削除しますか？"],
+		DeleteAudio: ["Delete", "Delete recordings in storage"],
 		},
 		
 	DE: {
 		RecordingTimePost: ["(sec)", "Aufnahmezeit in Secunden"],
 		Credits: ["über", "Informationen zur NKI TE-VOICE ANALYSIS tool"],
+		AudioCollection: ["Aufbewahren", "Aufnahme un aufbewahren von audio"],
+		SaveAudio: ["Audio", "Audiovenster in einer Datei schreiben"],
+		ExportAudio: ["Exportiere", "Exportiere gespeicherte Aufnahmen"],
+		ImportAudio: ["Importiere", "Importiere Aufnahmen"],
+		NewCollection: ["Neu", "Name einer neuen Collection von Aufnahmen"],
+		DeleteAudioConfirm: ["Sicher?", "Sind Sie sicher?"],
+		DeleteAudio: ["Lössche", "Lössche Aufnahmen"],
 		},		
 	NL: {
 		RecordingTimePost: ["(sec)", "Opnametijd in seconden"],
 		Credits: ["Over", "Informatie over NKI TE-VOICE ANALYSIS tool"],
+		AudioCollection: ["Bewaren", "Opnemen en bewaren van audio"],
+		SaveAudio: ["Audio", "Bewaar huidige selectie van geluid naar bestand"],
+		ExportAudio: ["Exporteer", "Exproteer de opgeslagen opnamen"],
+		ImportAudio: ["Importeer", "Importeer opnamen naar opslag"],
+		NewCollection: ["Nieuw", "Naam van nieuwe opnamengroep"],
+		DeleteAudioConfirm: ["Heel zeker?", "Bent u zeker dat u door wilt gaan?"],
+		DeleteAudio: ["Verwijder", "Verwijder opnamen"],
 		}
 };
 
@@ -233,6 +274,7 @@ var selector_tables = {
 		Frequency_3k: ["3kHz", "Display up to 3 kHz"],
 		Frequency_2k: ["2kHz", "Display up to 2 kHz"],
 		Frequency_1k: ["1kHz", "Display up to 1 kHz"],
+		AudioName: ["Archive", "Name of the active recording session"],
 		},
 	JA: {
 		Language: ["言語", "表示言語を設定します。"],
@@ -244,6 +286,7 @@ var selector_tables = {
 		Frequency_3k: ["3kHz", "3 kHzまでを表示する"],
 		Frequency_2k: ["2kHz", "2 kHzまでを表示する"],
 		Frequency_1k: ["1kHz", "1 kHzまでを表示する"],
+		AudioName: ["アーカイブ", "現在の録音セッションの名前です。"],
 		},
 	DE: {
 		Language: ["Sprache", "Wähle die gewünschte Sprache"],
@@ -255,6 +298,7 @@ var selector_tables = {
 		Frequency_3k: ["3kHz", "Wiedergabe bis 3 kHz"],
 		Frequency_2k: ["2kHz", "Wiedergabe bis 2 kHz"],
 		Frequency_1k: ["1kHz", "Wiedergabe bis 1 kHz"],
+		AudioName: ["Aufbewahren", "Name der aktieven Aufzeichnungssitzung"],
 		},
 	NL: {
 		Language: ["Taal", "Selecteer de gewenste taal"],
@@ -266,8 +310,38 @@ var selector_tables = {
 		Frequency_3k: ["3kHz", "Ga tot 3 kHz"],
 		Frequency_2k: ["2kHz", "Ga tot 2 kHz"],
 		Frequency_1k: ["1kHz", "Ga tot 1 kHz"],
+		AudioName: ["Bewaren", "Naam van de actieve opnamesessie"],
 		},
 }
+
+var menu_tables = {
+	EN: {
+		AudioCollection: ["Archive", "Recording and collection of audio"],
+		SaveAudio: ["Audio", "Save current audio selection to file"],
+		Speaker: ["Speakers", "Table with speaker data"],
+		SaveSpeaker: ["Save", "Write current table with speaker data"],
+		},
+			
+	JA: {
+		AudioCollection: ["アーカイブ", "オーディオの録音とコレクション"],
+		SaveAudio: ["オーディオ", "現在選択されているオーディオをファイルに保存"],
+		Speaker: ["話者", "話者データ一覧"],
+		SaveSpeaker: ["保存", "現在の表に話者データを書き込む"],
+		},
+		
+	DE: {
+		AudioCollection: ["Aufbewahren", "Aufnahme un aufbewahren von audio"],
+		SaveAudio: ["Audio", "Audiovenster in einer Datei schreiben"],
+		Speaker: ["Sprecher", "Tabelle mit den Sprecherdaten"],
+		SaveSpeaker: ["Speichern", "Speichere aktuelle Tabelle mit den Sprecherdaten"],
+		},		
+	NL: {
+		AudioCollection: ["Bewaren", "Opnemen en bewaren van audio"],
+		SaveAudio: ["Audio", "Bewaar huidige selectie van geluid naar bestand"],
+		Speaker: ["Sprekers", "Tabel met spreker gegevens"],
+		SaveSpeaker: ["Bewaar", "Bewaar huidige tabel met sprekergegevens"],
+		}
+};
 
 var language_table = {
 	Language_EN: ["English", "English language version"],

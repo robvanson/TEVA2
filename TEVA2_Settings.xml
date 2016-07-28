@@ -244,6 +244,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 			teva_settings.currentCollection = value;
 		};
 		getCurrentMetaData (teva_settings.currentCollection, false);
+		localStorage.readMetaData = JSON.stringify(true);
 	};
 		
 	// Construct a list of Collections

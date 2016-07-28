@@ -54,6 +54,12 @@ button {
 <script type="text/javascript" src="jszip.min.js" defer="true" ></script> 
 </head>
 <body  onload=";" onfocus="load_TEVA_settings ();" onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); if(settingsWindow)settingsWindow.close(); "  contextmenu="mymenu" >
+	<menu type="context" id="mymenu">
+		<menu id="AudioCollection" label="Archive" icon="TEVA.png" title="" >
+			<menuitem id="SaveAudio" label="Audio" onclick="saveAudio ();" icon="TEVA.png" title="" ></menuitem>
+			<menuitem id="Export" label="Export" onclick="exportAudio (); " icon="TEVA.png" title="" ></menuitem>
+		</menu>
+	</menu>
 
 	<div style="color: gray; position: fixed; top: 5%; left: 2%; font-size: 15vmin; text-align: center; " id="RecordingLight">&#9679;</div>
 	<div id="waveform" style="position: fixed; top: 5%; left: 20%; width: 60%; height: 60% " ></div>
@@ -63,6 +69,10 @@ button {
 	<input type="file" id="HiddenFileButton" name="OpenFile" style="display:none" onchange='openFile (this.files); this.value="";' title="Open" />
 	<a href="" id="HiddenDownloadLink" name="Download" style="display:none" title="Download" ></a>
 
+
+	<select id="ReadAudioCollectionCaption" style="position: fixed; color: black; bottom: 2%; left: 2%; height: 10%; width: 10%; font: 'Helvetica'; font-size: 3vmin ; background-color: rgb(220,220,220); " onchange="openStoredFile (this.selectedIndex);" >
+		<option id="" value="---" ><span id="ReadAudioCollection" title="" >---</span></option>
+	</select> 
 	<button type="button" style="color: black; bottom: 2%; left: 13%" id="FileButton" ><span style="font-size: 100%; "><span id="File">Open</span></span></button>
 	<button type="button" style="color: gray; bottom: 2%; left: 32%" id="RecordButton" disabled="true" ><span style="font-size: 100%; ">&#9679;<br /><span id="Record">Record</span></span></button>
 	<button type="button" style="color: gray; bottom: 2%; left: 51%" id="PlayButton" disabled="true" ><span style="font-size: 100%">&#9658;<br /><span id="Play">Play</span></span></button>
@@ -244,6 +254,58 @@ button {
 	    hiddenFileButton.click();
 	};
 	
+	// List stored files
+	function changeRecordingCollection() {
+		var key = "";
+		getAllRecords (teva_settings.currentCollection, add_entries_to_recordingSelector);
+	};
+
+	function add_entries_to_recordingSelector (list) {
+		var selector = document.getElementById('ReadAudioCollectionCaption');
+		var i = 0;
+		// First, remove old entries
+		var numOptions = selector.options.length
+		for(var i = numOptions - 1; i > 0; --i) {
+			selector.remove(i);
+		};
+		selector.options[0].text = list[0].collection;
+		selector.options[0].value = "-";
+		// Add new entries
+		var metaData = JSON.parse(sessionStorage.metaData);
+		for(i=0; i < list.length; ++i) {
+			var record = list[i];
+			if (record.map) {
+				var key = record.collection+"/"+record.map+"/"+record.name;
+				var comment = metaData[key] ? " ; "+(metaData[key].comment) : "";
+				var lastOption = selector.options.length - 1;
+				var wordlistTitle = record.comment;
+				var newOption = selector.options[0].cloneNode(true);
+				newOption.text = record.map+"/"+record.name+comment;
+				newOption.value = key;
+				selector.add(newOption);
+			};
+		};
+	};
+	
+	// Read stored file
+	function openStoredFile (index) {
+		var selector = document.getElementById('ReadAudioCollectionCaption');
+		var key = selector.options[index].value;
+		if (!key || key == "-") return;
+		
+		var name = key.match(/[^\/]*$/g)[0];
+		key = key.replace(/\/[^\/]*$/g, "");
+		var map = key.match(/[^\/]*$/g)[0];
+		var collection = key.replace(/\/[^\/]*$/g, "");
+		getCurrentAudioWindow (collection, map, name);
+		// reset buttons
+	    play.disabled = false;
+	    record.disabled = false;
+	    record.style.color = "red";
+	    play.style.color = "red";
+		
+	};
+	
 	// Global settings
 	sessionStorage.metaData = JSON.stringify({});
 	localStorage.readMetaData = JSON.stringify(true);
@@ -280,6 +342,7 @@ button {
 							});
 			localStorage.readMetaData = JSON.stringify(false);
 		};
+		changeRecordingCollection();
 	};
 	
 	// Initialize to stored settings
@@ -459,15 +522,5 @@ button {
 	//]]>	
 
 	</script>
-
-	<menu type="context" id="mymenu">
-		<menu id="AudioCollection" label="Archive" icon="TEVA.png" title="" >
-			<menuitem id="SaveAudio" label="Audio" onclick="saveAudio ();" icon="TEVA.png" title="" ></menuitem>
-			<menuitem id="Export" label="Export" onclick="exportAudio (); " icon="TEVA.png" title="" ></menuitem>
-		</menu>
-		<menu label="More things..." icon="TEVA.png">
-			<menuitem label="Settings" icon="TEVA.png" onclick="settingsWindow = window.open('TEVA2_Settings.xml', '_blank');"></menuitem>
-		</menu>
-	</menu>
 </body>
 </html>

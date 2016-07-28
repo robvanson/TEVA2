@@ -53,7 +53,7 @@ button {
 <script type="text/javascript" src="RecordRTC.min.js" defer="true" ></script>
 <script type="text/javascript" src="jszip.min.js" defer="true" ></script> 
 </head>
-<body  onload="if(window.speechSynthesis)window.speechSynthesis.getVoices();" onfocus="load_TEVA_settings ();" onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); if(settingsWindow)settingsWindow.close(); "  contextmenu="mymenu" >
+<body  onload=";" onfocus="load_TEVA_settings ();" onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); if(settingsWindow)settingsWindow.close(); "  contextmenu="mymenu" >
 
 	<div style="color: gray; position: fixed; top: 5%; left: 2%; font-size: 15vmin; text-align: center; " id="RecordingLight">&#9679;</div>
 	<div id="waveform" style="position: fixed; top: 5%; left: 20%; width: 60%; height: 60% " ></div>
@@ -245,6 +245,8 @@ button {
 	};
 	
 	// Global settings
+	sessionStorage.metaData = JSON.stringify({});
+	localStorage.readMetaData = JSON.stringify(true);
 	var teva_settings = {
 		settingsRead: "false",
 		recSecs: 4,
@@ -253,6 +255,7 @@ button {
 		frequency: 2,
 		audioDatabaseName: "TEVA audio",
 		currentCollection: "TEVA",
+		currentMap: "Recordings",
 	};
 	
 	// Store settings
@@ -270,6 +273,13 @@ button {
 		set_mainpageLanguage (teva_settings.language);
 		setDrawButtons (document.getElementById('Draw_'+teva_settings.display+'Button'));
 		audioDatabaseName = teva_settings.audioDatabaseName;
+		if (JSON.parse(localStorage.readMetaData)) {
+			getCurrentMetaData (teva_settings.currentCollection, function (list){
+								var newMetaData = (list.length > 0) ? csvList2object(list) : {};
+								sessionStorage.metaData = JSON.stringify(newMetaData);
+							});
+			localStorage.readMetaData = JSON.stringify(false);
+		};
 	};
 	
 	// Initialize to stored settings
@@ -357,10 +367,25 @@ button {
 		var blob = arrayToBlob (currentAudioWindow, startTime, endTime, recordedSampleRate);
 		// Get filename
 		var promptText = menu_tables[teva_settings.language]["SaveAudio"][1];
-		var fileName = prompt(promptText, menu_tables[teva_settings.language]["SaveAudio"][0]+".wav");
+		var promptAnswer = prompt(promptText, teva_settings.currentMap+"/"+menu_tables[teva_settings.language]["SaveAudio"][0]+".wav"+"; Comment");
+		if(!promptAnswer) return;
+		var filePath = promptAnswer.match(/^([^;]+)/g)[0];
+		var fileName = filePath.match(/[^\/]*$/g)[0];
+		var currentMap = filePath.replace(/\/[^\/]+$/g, "");
+		var comment = promptAnswer.replace(/[^;]*;\s*/, "");
+		if(comment == "Comment") comment = "";
 		if (fileName && fileName.length > 0) {
+			teva_settings.currentMap = currentMap;
 			if(! fileName.match("\.wav$"))fileName += ".wav";
-			addAudioBlob(teva_settings.currentCollection, "Recordings", fileName, blob);
+			addAudioBlob(teva_settings.currentCollection, currentMap, fileName, blob);
+			
+			var key = teva_settings.currentCollection+"/"+currentMap+"/"+fileName
+
+			var metaData = JSON.parse(sessionStorage.metaData);
+			metaData[key] = {key: key, comment: comment, collection: teva_settings.currentCollection, map: currentMap, file: fileName};
+			sessionStorage.metaData = JSON.stringify(metaData);
+			var csvList = object2csvList (metaData);
+			writeCSV(teva_settings.currentCollection, csvList);
 			
 	        // hiddenDownloadLink.download = fileName;
 	        // hiddenDownloadLink.href = URL.createObjectURL(blob);
@@ -394,7 +419,7 @@ button {
 		zip.forEach(function (relativePath, file){
 			if(relativePath.match(/\.(wav|flac|mp3|spx|ogg|tsv)$/ig)) {
 				var collection = teva_settings.currentCollection;
-				var map = "Recordings";
+				var map = teva_settings.currentMap;
 				var name = "Audio.wav";
 				var path = relativePath.split("/");
 				name = path[path.length - 1];

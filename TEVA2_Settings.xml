@@ -163,6 +163,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 		frequency: 2,
 		audioDatabaseName: "TEVA audio",
 		currentCollection: "TEVA",
+		currentMap: "Recordings",
 	};
 	
 	// Store settings
@@ -243,6 +244,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 			teva_settings.currentCollection = value;
 		};
 		getCurrentMetaData (teva_settings.currentCollection, false);
+		localStorage.readMetaData = JSON.stringify(true);
 	};
 		
 	// Construct a list of Collections

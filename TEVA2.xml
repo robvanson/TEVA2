@@ -53,8 +53,15 @@ button {
 <script type="text/javascript" src="RecordRTC.min.js" defer="true" ></script>
 <script type="text/javascript" src="jszip.min.js" defer="true" ></script> 
 </head>
-<body  onload="if(window.speechSynthesis)window.speechSynthesis.getVoices();" onfocus="load_TEVA_settings ();" onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); if(settingsWindow)settingsWindow.close(); "  contextmenu="mymenu" >
+<body  onload=";" onfocus="load_TEVA_settings ();" onblur="store_TEVA_settings ();" onunload="store_TEVA_settings (); if(settingsWindow)settingsWindow.close(); "  contextmenu="mymenu" >
+	<menu type="context" id="mymenu">
+		<menu id="AudioCollection" label="Archive" icon="TEVA.png" title="" >
+			<menuitem id="SaveAudio" label="Audio" onclick="saveAudio ();" icon="TEVA.png" title="" ></menuitem>
+			<menuitem id="Export" label="Export" onclick="exportAudio (); " icon="TEVA.png" title="" ></menuitem>
+		</menu>
+	</menu>
 
+	<div style="color: blue; position: fixed; top: 1%; left: 20%; width: 60%; height: 4%; font-size: 4vmin; text-align: center; " id="SubscriptText"></div>
 	<div style="color: gray; position: fixed; top: 5%; left: 2%; font-size: 15vmin; text-align: center; " id="RecordingLight">&#9679;</div>
 	<div id="waveform" style="position: fixed; top: 5%; left: 20%; width: 60%; height: 60% " ></div>
 	
@@ -63,6 +70,10 @@ button {
 	<input type="file" id="HiddenFileButton" name="OpenFile" style="display:none" onchange='openFile (this.files); this.value="";' title="Open" />
 	<a href="" id="HiddenDownloadLink" name="Download" style="display:none" title="Download" ></a>
 
+
+	<select id="ReadAudioCollectionCaption" style="position: fixed; color: black; bottom: 2%; left: 2%; height: 10%; width: 10%; font: 'Helvetica'; font-size: 3vmin; text-align: right background-color: rgb(220,220,220); " onchange="openStoredFile (this.selectedIndex);" >
+		<option id="" value="---" ><span id="ReadAudioCollection" title="" >---</span></option>
+	</select> 
 	<button type="button" style="color: black; bottom: 2%; left: 13%" id="FileButton" ><span style="font-size: 100%; "><span id="File">Open</span></span></button>
 	<button type="button" style="color: gray; bottom: 2%; left: 32%" id="RecordButton" disabled="true" ><span style="font-size: 100%; ">&#9679;<br /><span id="Record">Record</span></span></button>
 	<button type="button" style="color: gray; bottom: 2%; left: 51%" id="PlayButton" disabled="true" ><span style="font-size: 100%">&#9658;<br /><span id="Play">Play</span></span></button>
@@ -237,6 +248,8 @@ button {
 
 		    // Reset existing parameters
 		    initializeExistingAnalysis();
+			sessionStorage.subscript = JSON.stringify("");
+			document.getElementById('ReadAudioCollectionCaption').selectedIndex = 0;
 		};
 	};
 	
@@ -244,7 +257,64 @@ button {
 	    hiddenFileButton.click();
 	};
 	
+	// List stored files
+	function changeRecordingCollection() {
+		var key = "";
+		getAllRecords (teva_settings.currentCollection, add_entries_to_recordingSelector);
+	};
+
+	function add_entries_to_recordingSelector (list) {
+		var selector = document.getElementById('ReadAudioCollectionCaption');
+		var i = 0;
+		// First, remove old entries
+		var numOptions = selector.options.length
+		for(var i = numOptions - 1; i > 0; --i) {
+			selector.remove(i);
+		};
+		selector.options[0].text = list[0].collection;
+		selector.options[0].value = "-";
+		// Add new entries
+		var metaData = JSON.parse(sessionStorage.metaData);
+		for(i=0; i < list.length; ++i) {
+			var record = list[i];
+			if (record.map) {
+				var key = record.collection+"/"+record.map+"/"+record.name;
+				var subscript = metaData[key] ? (metaData[key].comment) : ""
+				var comment = metaData[key] ? " ; "+(metaData[key].comment) : "";
+				var lastOption = selector.options.length - 1;
+				var newOption = selector.options[0].cloneNode(true);
+				newOption.text = record.map+"/"+record.name+comment;
+				newOption.value = key;
+				newOption.title = subscript;
+				selector.add(newOption);
+			};
+		};
+	};
+	
+	// Read stored file
+	function openStoredFile (index) {
+		var selector = document.getElementById('ReadAudioCollectionCaption');
+		var key = selector.options[index].value;
+		if (!key || key == "-") return;
+		
+		var name = key.match(/[^\/]*$/g)[0];
+		key = key.replace(/\/[^\/]*$/g, "");
+		var map = key.match(/[^\/]*$/g)[0];
+		var collection = key.replace(/\/[^\/]*$/g, "");
+		getCurrentAudioWindow (collection, map, name);
+		sessionStorage.subscript = JSON.stringify(selector.options[index].title);
+		// reset buttons
+	    play.disabled = false;
+	    record.disabled = false;
+	    record.style.color = "red";
+	    play.style.color = "red";
+		
+	};
+	
 	// Global settings
+	sessionStorage.metaData = JSON.stringify({});
+	sessionStorage.subscript = JSON.stringify("");
+	localStorage.readMetaData = JSON.stringify(true);
 	var teva_settings = {
 		settingsRead: "false",
 		recSecs: 4,
@@ -253,6 +323,7 @@ button {
 		frequency: 2,
 		audioDatabaseName: "TEVA audio",
 		currentCollection: "TEVA",
+		currentMap: "Recordings",
 	};
 	
 	// Store settings
@@ -270,6 +341,14 @@ button {
 		set_mainpageLanguage (teva_settings.language);
 		setDrawButtons (document.getElementById('Draw_'+teva_settings.display+'Button'));
 		audioDatabaseName = teva_settings.audioDatabaseName;
+		if (JSON.parse(localStorage.readMetaData)) {
+			getCurrentMetaData (teva_settings.currentCollection, function (list){
+								var newMetaData = (list.length > 0) ? csvList2object(list) : {};
+								sessionStorage.metaData = JSON.stringify(newMetaData);
+							});
+			localStorage.readMetaData = JSON.stringify(false);
+		};
+		changeRecordingCollection();
 	};
 	
 	// Initialize to stored settings
@@ -342,7 +421,9 @@ button {
 		    
 		    // Reset existing parameters
 		    initializeExistingAnalysis();
-		    
+			sessionStorage.subscript = JSON.stringify("");
+			document.getElementById('ReadAudioCollectionCaption').selectedIndex = 0;
+					    
 		    recordRTC.initRecorder();
 			recordRTC.startRecording();
 		    // Set Timeout for stop
@@ -357,10 +438,25 @@ button {
 		var blob = arrayToBlob (currentAudioWindow, startTime, endTime, recordedSampleRate);
 		// Get filename
 		var promptText = menu_tables[teva_settings.language]["SaveAudio"][1];
-		var fileName = prompt(promptText, menu_tables[teva_settings.language]["SaveAudio"][0]+".wav");
+		var promptAnswer = prompt(promptText, teva_settings.currentMap+"/"+menu_tables[teva_settings.language]["SaveAudio"][0]+".wav"+"; Comment");
+		if(!promptAnswer) return;
+		var filePath = promptAnswer.match(/^([^;]+)/g)[0];
+		var fileName = filePath.match(/[^\/]*$/g)[0];
+		var currentMap = filePath.replace(/\/[^\/]+$/g, "");
+		var comment = promptAnswer.replace(/[^;]*;\s*/, "");
+		if(comment == "Comment") comment = "";
 		if (fileName && fileName.length > 0) {
+			teva_settings.currentMap = currentMap;
 			if(! fileName.match("\.wav$"))fileName += ".wav";
-			addAudioBlob(teva_settings.currentCollection, "Recordings", fileName, blob);
+			addAudioBlob(teva_settings.currentCollection, currentMap, fileName, blob);
+			
+			var key = teva_settings.currentCollection+"/"+currentMap+"/"+fileName
+
+			var metaData = JSON.parse(sessionStorage.metaData);
+			metaData[key] = {key: key, comment: comment, collection: teva_settings.currentCollection, map: currentMap, file: fileName};
+			sessionStorage.metaData = JSON.stringify(metaData);
+			var csvList = object2csvList (metaData);
+			writeCSV(teva_settings.currentCollection, csvList);
 			
 	        // hiddenDownloadLink.download = fileName;
 	        // hiddenDownloadLink.href = URL.createObjectURL(blob);
@@ -394,7 +490,7 @@ button {
 		zip.forEach(function (relativePath, file){
 			if(relativePath.match(/\.(wav|flac|mp3|spx|ogg|tsv)$/ig)) {
 				var collection = teva_settings.currentCollection;
-				var map = "Recordings";
+				var map = teva_settings.currentMap;
 				var name = "Audio.wav";
 				var path = relativePath.split("/");
 				name = path[path.length - 1];
@@ -434,15 +530,5 @@ button {
 	//]]>	
 
 	</script>
-
-	<menu type="context" id="mymenu">
-		<menu id="AudioCollection" label="Archive" icon="TEVA.png" title="" >
-			<menuitem id="SaveAudio" label="Audio" onclick="saveAudio ();" icon="TEVA.png" title="" ></menuitem>
-			<menuitem id="Export" label="Export" onclick="exportAudio (); " icon="TEVA.png" title="" ></menuitem>
-		</menu>
-		<menu label="More things..." icon="TEVA.png">
-			<menuitem label="Settings" icon="TEVA.png" onclick="settingsWindow = window.open('TEVA2_Settings.xml', '_blank');"></menuitem>
-		</menu>
-	</menu>
 </body>
 </html>

@@ -61,6 +61,7 @@ button {
 		</menu>
 	</menu>
 
+	<div style="color: blue; position: fixed; top: 1%; left: 20%; width: 60%; height: 4%; font-size: 4vmin; text-align: center; " id="SubscriptText"></div>
 	<div style="color: gray; position: fixed; top: 5%; left: 2%; font-size: 15vmin; text-align: center; " id="RecordingLight">&#9679;</div>
 	<div id="waveform" style="position: fixed; top: 5%; left: 20%; width: 60%; height: 60% " ></div>
 	
@@ -70,7 +71,7 @@ button {
 	<a href="" id="HiddenDownloadLink" name="Download" style="display:none" title="Download" ></a>
 
 
-	<select id="ReadAudioCollectionCaption" style="position: fixed; color: black; bottom: 2%; left: 2%; height: 10%; width: 10%; font: 'Helvetica'; font-size: 3vmin ; background-color: rgb(220,220,220); " onchange="openStoredFile (this.selectedIndex);" >
+	<select id="ReadAudioCollectionCaption" style="position: fixed; color: black; bottom: 2%; left: 2%; height: 10%; width: 10%; font: 'Helvetica'; font-size: 3vmin; text-align: right background-color: rgb(220,220,220); " onchange="openStoredFile (this.selectedIndex);" >
 		<option id="" value="---" ><span id="ReadAudioCollection" title="" >---</span></option>
 	</select> 
 	<button type="button" style="color: black; bottom: 2%; left: 13%" id="FileButton" ><span style="font-size: 100%; "><span id="File">Open</span></span></button>
@@ -247,6 +248,8 @@ button {
 
 		    // Reset existing parameters
 		    initializeExistingAnalysis();
+			sessionStorage.subscript = JSON.stringify("");
+			document.getElementById('ReadAudioCollectionCaption').selectedIndex = 0;
 		};
 	};
 	
@@ -276,12 +279,13 @@ button {
 			var record = list[i];
 			if (record.map) {
 				var key = record.collection+"/"+record.map+"/"+record.name;
+				var subscript = metaData[key] ? (metaData[key].comment) : ""
 				var comment = metaData[key] ? " ; "+(metaData[key].comment) : "";
 				var lastOption = selector.options.length - 1;
-				var wordlistTitle = record.comment;
 				var newOption = selector.options[0].cloneNode(true);
 				newOption.text = record.map+"/"+record.name+comment;
 				newOption.value = key;
+				newOption.title = subscript;
 				selector.add(newOption);
 			};
 		};
@@ -298,6 +302,7 @@ button {
 		var map = key.match(/[^\/]*$/g)[0];
 		var collection = key.replace(/\/[^\/]*$/g, "");
 		getCurrentAudioWindow (collection, map, name);
+		sessionStorage.subscript = JSON.stringify(selector.options[index].title);
 		// reset buttons
 	    play.disabled = false;
 	    record.disabled = false;
@@ -308,6 +313,7 @@ button {
 	
 	// Global settings
 	sessionStorage.metaData = JSON.stringify({});
+	sessionStorage.subscript = JSON.stringify("");
 	localStorage.readMetaData = JSON.stringify(true);
 	var teva_settings = {
 		settingsRead: "false",
@@ -415,7 +421,9 @@ button {
 		    
 		    // Reset existing parameters
 		    initializeExistingAnalysis();
-		    
+			sessionStorage.subscript = JSON.stringify("");
+			document.getElementById('ReadAudioCollectionCaption').selectedIndex = 0;
+					    
 		    recordRTC.initRecorder();
 			recordRTC.startRecording();
 		    // Set Timeout for stop

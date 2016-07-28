@@ -104,6 +104,13 @@ function drawSignal (display) {
 			draw_intensity (canvasId, color, recordedArray, recordedSampleRate, windowStart, windowEnd, windowStart, windowEnd);		
 		} else {
 		};
+		
+		var subscript = JSON.parse(sessionStorage.subscript);
+		if (subscript.length <=0)subscript = "";
+		if(document.getElementById('SubscriptText')) {
+			document.getElementById('SubscriptText').textContent = subscript;
+		};
+
 	};
 }
 

@@ -541,6 +541,10 @@ function load_audio(url) {
  */
 function get_percentiles (points, compare, remove, percentiles) {
 	var sortList = points.slice();
+	var ax;
+	while (sortList.length > 0 && (ax = sortList.indexOf(undefined)) !== -1) {
+            sortList.splice(ax, 1);
+    }
 	var result = [];
 	sortList.sort(compare);
 	var sortListLength = sortList.length
@@ -553,8 +557,10 @@ function get_percentiles (points, compare, remove, percentiles) {
 		var perc = percentiles[i];
 		if (perc > 1) perc /= 100;
 		var newPercentile = {value: undefined, percentile: 0};
-		newPercentile.value = sortList[Math.ceil(perc * sortList.length)];
-		newPercentile.percentile = percentiles[i]; 
+		var bin = Math.ceil(perc * sortList.length) - 1;
+		bin = bin < 0 ? 0 : (bin >= sortList.length ? sortList.length : bin);
+		newPercentile.value = sortList[bin];
+		newPercentile.percentile = percentiles[i];
 		result.push(newPercentile)
 	};
 	return result;

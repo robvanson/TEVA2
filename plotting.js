@@ -513,13 +513,16 @@ function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax
 	var scaleVer = verMax - verMin;
 	var scaleHor = horMax - horMin;
 	var tickLength = 10;
-	var deltaVer = scaleVer / Math.pow(10, Math.floor(Math.log10(scaleVer)));
-	if (deltaVer < 5) deltaVer *= 10;
-	deltaVer = plotHeight / deltaVer;
+	var numVer = scaleVer / Math.pow(10, Math.floor(Math.log10(scaleVer)));
+	if (numVer < 5) numVer *= 10;
+	var deltaVer = plotHeight / numVer;
+	// Use to determine "reasonable" longer ticks
+	var scaleCountVer = numVer*verMin/scaleVer;
 	
-	var deltaHor = (scaleHor) / Math.pow(10, Math.floor(Math.log10(scaleHor)));
-	if(deltaHor < 7) deltaHor *= 10;
-	deltaHor = plotWidth / deltaHor;
+	var numHor = (scaleHor) / Math.pow(10, Math.floor(Math.log10(scaleHor)));
+	if(numHor < 7) numHor *= 10;
+	var deltaHor = plotWidth / numHor;
+	var scaleCountHor = numHor*horMin/scaleHor;
 	
 	// Draw axes
 	drawingCtx.beginPath();
@@ -534,10 +537,14 @@ function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax
 	drawingCtx.beginPath();
 	drawingCtx.lineWidth = 1;
 	for (var v = plotHeight; v >= 0; v -= deltaVer) {
+		var scaleTick = scaleCountVer % 10 ? 1 : 2;
+		drawingCtx.lineWidth = 1*scaleTick;
 		drawingCtx.beginPath();
-		drawingCtx.moveTo(horMargin - tickLength, v);
+		drawingCtx.moveTo(horMargin - tickLength*scaleTick, v);
 		drawingCtx.lineTo(horMargin, v);
 		drawingCtx.stroke();
+		drawingCtx.lineWidth = 1;
+		++scaleCountVer;
 	};
 	
 	// Write text
@@ -556,10 +563,14 @@ function plot_Axes (drawingCtx, horMargin, plotHeight, plotWidth, verMin, verMax
 	drawingCtx.strokeStyle = "black";
 	drawingCtx.lineWidth = 1;
 	for (var h = 0; h <= plotWidth; h += deltaHor) {
+		var scaleTick = scaleCountHor % 10 ? 1 : 1.5;
+		drawingCtx.lineWidth = 1*scaleTick;
 		drawingCtx.beginPath();
 		drawingCtx.moveTo(horMargin + h, plotHeight);
-		drawingCtx.lineTo(horMargin + h, plotHeight + 2*tickLength);
+		drawingCtx.lineTo(horMargin + h, plotHeight + 2*tickLength*scaleTick);
 		drawingCtx.stroke();
+		drawingCtx.lineWidth = 1;
+		++scaleCountHor;
 	};
 	
 };
